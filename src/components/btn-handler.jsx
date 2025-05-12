@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Webcam } from "../utils/webcam";
 
-const ButtonHandler = ({ imageRef, cameraRef, videoRef }) => {
+const ButtonHandler = ({ imageRef, cameraRef, videoRef, capturedImageRef }) => {
   const [streaming, setStreaming] = useState(null); // streaming state
   const inputImageRef = useRef(null); // video input reference
   const inputVideoRef = useRef(null); // video input reference
@@ -29,13 +29,17 @@ const ButtonHandler = ({ imageRef, cameraRef, videoRef }) => {
     videoRef.current.style.display = "none"; // hide video
   };
 
+  const canvas = document.createElement("canvas");
+  canvas.width = 640;
+  canvas.height = 640;
+
   return (
-    <div className="btn-container">
+    <div className="flex flex-wrap justify-center gap-4">
       {/* Image Handler */}
       <input
         type="file"
         accept="image/*"
-        style={{ display: "none" }}
+        className="hidden"
         onChange={(e) => {
           const url = URL.createObjectURL(e.target.files[0]); // create blob url
           imageRef.current.src = url; // set video source
@@ -45,12 +49,20 @@ const ButtonHandler = ({ imageRef, cameraRef, videoRef }) => {
         ref={inputImageRef}
       />
       <button
+        className={`px-6 py-2 rounded-full font-medium transition-all duration-200 ${
+          streaming === "image"
+            ? "bg-red-500 hover:bg-red-600 text-white"
+            : "bg-blue-500 hover:bg-blue-600 text-white"
+        }`}
         onClick={() => {
           // if not streaming
           if (streaming === null) inputImageRef.current.click();
           // closing image streaming
           else if (streaming === "image") closeImage();
-          else alert(`Can't handle more than 1 stream\nCurrently streaming : ${streaming}`); // if streaming video or webcam
+          else
+            alert(
+              `Can't handle more than 1 stream\nCurrently streaming : ${streaming}`
+            ); // if streaming video or webcam
         }}
       >
         {streaming === "image" ? "Close" : "Open"} Image
@@ -60,7 +72,7 @@ const ButtonHandler = ({ imageRef, cameraRef, videoRef }) => {
       <input
         type="file"
         accept="video/*"
-        style={{ display: "none" }}
+        className="hidden"
         onChange={(e) => {
           if (streaming === "image") closeImage(); // closing image streaming
           const url = URL.createObjectURL(e.target.files[0]); // create blob url
@@ -72,12 +84,21 @@ const ButtonHandler = ({ imageRef, cameraRef, videoRef }) => {
         ref={inputVideoRef}
       />
       <button
+        className={`px-6 py-2 rounded-full font-medium transition-all duration-200 ${
+          streaming === "video"
+            ? "bg-red-500 hover:bg-red-600 text-white"
+            : "bg-blue-500 hover:bg-blue-600 text-white"
+        }`}
         onClick={() => {
           // if not streaming
-          if (streaming === null || streaming === "image") inputVideoRef.current.click();
+          if (streaming === null || streaming === "image")
+            inputVideoRef.current.click();
           // closing video streaming
           else if (streaming === "video") closeVideo();
-          else alert(`Can't handle more than 1 stream\nCurrently streaming : ${streaming}`); // if streaming webcam
+          else
+            alert(
+              `Can't handle more than 1 stream\nCurrently streaming : ${streaming}`
+            ); // if streaming webcam
         }}
       >
         {streaming === "video" ? "Close" : "Open"} Video
@@ -85,6 +106,11 @@ const ButtonHandler = ({ imageRef, cameraRef, videoRef }) => {
 
       {/* Webcam Handler */}
       <button
+        className={`px-6 py-2 rounded-full font-medium transition-all duration-200 ${
+          streaming === "camera"
+            ? "bg-red-500 hover:bg-red-600 text-white"
+            : "bg-blue-500 hover:bg-blue-600 text-white"
+        }`}
         onClick={() => {
           // if not streaming
           if (streaming === null || streaming === "image") {
@@ -99,10 +125,40 @@ const ButtonHandler = ({ imageRef, cameraRef, videoRef }) => {
             webcam.close(cameraRef.current);
             cameraRef.current.style.display = "none";
             setStreaming(null);
-          } else alert(`Can't handle more than 1 stream\nCurrently streaming : ${streaming}`); // if streaming video
+          } else
+            alert(
+              `Can't handle more than 1 stream\nCurrently streaming : ${streaming}`
+            ); // if streaming video
         }}
       >
         {streaming === "camera" ? "Close" : "Open"} Webcam
+      </button>
+      <button
+        className={`px-6 py-2 rounded-full font-medium transition-all duration-200 ${
+          streaming === "camera"
+            ? "bg-green-500 hover:bg-green-600 text-white"
+            : "bg-gray-300 cursor-not-allowed text-gray-500"
+        }`}
+        onClick={() => {
+          if (cameraRef.current && cameraRef.current.srcObject) {
+            const context = canvas.getContext("2d");
+            context.drawImage(
+              cameraRef.current,
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+            const dataUrl = canvas.toDataURL("image/png");
+            capturedImageRef.current.src = dataUrl;
+            capturedImageRef.current.style.display = "block";
+            // call detection once image is loaded (handled by `onLoad`)
+          } else {
+            alert("Webcam not open!");
+          }
+        }}
+      >
+        Capture Photo
       </button>
     </div>
   );
