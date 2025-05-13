@@ -3,7 +3,7 @@ import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-backend-webgl"; // set backend to webgl
 import Loader from "./components/loader";
 import ButtonHandler from "./components/btn-handler";
-import { detect, detectVideo } from "./utils/detect";
+import { detectVideo } from "./utils/detect";
 
 const App = () => {
   const [loading, setLoading] = useState({ loading: true, progress: 0 }); // loading state
@@ -13,9 +13,7 @@ const App = () => {
   }); // init model & input shape
 
   // references
-  const imageRef = useRef(null);
   const cameraRef = useRef(null);
-  const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const capturedImageRef = useRef(null);
 
@@ -72,12 +70,6 @@ const App = () => {
           <div className="relative aspect-video w-full max-w-4xl mx-auto mb-6 rounded-lg overflow-hidden">
             <img
               src="#"
-              ref={imageRef}
-              className="hidden absolute inset-0 w-full h-full object-contain"
-              onLoad={() => detect(imageRef.current, model, canvasRef.current)}
-            />
-            <img
-              src="#"
               ref={capturedImageRef}
               className="hidden absolute inset-0 w-full h-full object-contain"
               alt="Captured frame"
@@ -91,15 +83,6 @@ const App = () => {
                 detectVideo(cameraRef.current, model, canvasRef.current)
               }
             />
-            <video
-              autoPlay
-              muted
-              ref={videoRef}
-              className="absolute inset-0 w-full h-full object-contain"
-              onPlay={() =>
-                detectVideo(videoRef.current, model, canvasRef.current)
-              }
-            />
             <canvas
               width={model.inputShape[1]}
               height={model.inputShape[2]}
@@ -109,9 +92,7 @@ const App = () => {
           </div>
 
           <ButtonHandler
-            imageRef={imageRef}
             cameraRef={cameraRef}
-            videoRef={videoRef}
             capturedImageRef={capturedImageRef}
           />
         </div>
