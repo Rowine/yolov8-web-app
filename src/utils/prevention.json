@@ -1,0 +1,37 @@
+{
+  "Rice Leafhopper": [
+    "Use disease-resistant rice varieties",
+    "Ensure proper field drainage",
+    "Avoid excessive nitrogen fertilization",
+    "Practice crop rotation",
+    "Remove and destroy infected plant debris"
+  ],
+  "Brown Spot": [
+    "Maintain balanced soil nutrients",
+    "Apply proper amounts of potassium",
+    "Use certified disease-free seeds",
+    "Treat seeds with fungicides before planting",
+    "Maintain good field sanitation"
+  ],
+  "Leaf Smut": [
+    "Use resistant varieties",
+    "Apply recommended fungicides",
+    "Maintain proper spacing between plants",
+    "Remove infected plants",
+    "Practice proper water management"
+  ],
+  "Rice Blast": [
+    "Plant resistant varieties",
+    "Avoid excessive nitrogen application",
+    "Maintain good drainage",
+    "Apply fungicides preventively",
+    "Time planting to avoid peak disease periods"
+  ],
+  "Tungro": [
+    "Use resistant varieties",
+    "Control leafhopper vectors",
+    "Practice synchronized planting",
+    "Remove alternative weed hosts",
+    "Maintain field cleanliness"
+  ]
+} 
