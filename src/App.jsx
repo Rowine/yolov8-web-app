@@ -9,6 +9,7 @@ import Login from "./components/authentication/login";
 import Signup from "./components/authentication/signup";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LocationPage from "./pages/LocationPage";
+import ProfilePage from "./pages/ProfilePage";
 import useUserStore from "./store/userStore";
 
 const App = () => {
@@ -79,6 +80,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <LocationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />

@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { ArrowLeft, Mail, Lock, Phone, Eye, EyeOff, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import useUserStore from "../../store/userStore";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -41,6 +42,9 @@ const Signup = () => {
         phone: phone,
         createdAt: new Date(),
       });
+
+      // Wait for the userStore to update with the new user data
+      await useUserStore.getState().setUser(user);
 
       navigate("/location");
     } catch (error) {

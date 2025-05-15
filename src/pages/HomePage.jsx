@@ -7,13 +7,27 @@ import Sidebar from "../components/Sidebar";
 const HomePage = ({ model, loading }) => {
   const cameraRef = useRef(null);
   const canvasRef = useRef(null);
-  const { initialize } = useUserStore();
+  const { initialize, user } = useUserStore();
   const [isCameraActive, setIsCameraActive] = useState(false);
 
   useEffect(() => {
     const unsubscribe = initialize();
     return () => unsubscribe();
   }, [initialize]);
+
+  // Development only
+  useEffect(() => {
+    if (user) {
+      console.log("Current User Details:", {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        uid: user.uid,
+        farmLocation: user.farmLocation,
+        createdAt: user.createdAt,
+      });
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-green-50 flex flex-col">

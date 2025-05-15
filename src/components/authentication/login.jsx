@@ -3,6 +3,7 @@ import { auth } from "../../config/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { ArrowLeft, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import useUserStore from "../../store/userStore";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +31,9 @@ const Login = () => {
         email,
         password
       );
-      console.log(userCredential);
+
+      // Wait for the userStore to update with the user data
+      await useUserStore.getState().setUser(userCredential.user);
 
       navigate("/");
     } catch (error) {
@@ -38,10 +41,6 @@ const Login = () => {
       setError(error.message);
     }
   };
-
-  useEffect(() => {
-    console.log(auth.currentUser);
-  }, [navigate]);
 
   return (
     <main className="min-h-screen bg-green-50 flex flex-col items-center justify-center p-4">
