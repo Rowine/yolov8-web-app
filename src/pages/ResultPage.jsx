@@ -101,7 +101,7 @@ const ResultPage = () => {
               >
                 <img
                   ref={imageRef}
-                  src={imageData || "/placeholder.svg"}
+                  src={imageData}
                   alt="Captured Rice Plant"
                   className="absolute top-0 left-0 w-full h-full object-contain bg-white rounded-lg"
                 />

@@ -42,7 +42,7 @@ const Signup = () => {
         createdAt: new Date(),
       });
 
-      navigate("/");
+      navigate("/location");
     } catch (error) {
       console.error("Error registering user:", error);
       setError(error.message);
