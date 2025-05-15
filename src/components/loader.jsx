@@ -1,9 +1,9 @@
 const Loader = (props) => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-lg p-8 flex flex-col items-center">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-700 text-lg font-medium">{props.children}</p>
+    <div className="fixed inset-0 bg-green-50/80 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-xl shadow-sm text-center">
+        <div className="animate-spin h-10 w-10 border-4 border-green-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p className="text-gray-700">{props.children}</p>
       </div>
     </div>
   );

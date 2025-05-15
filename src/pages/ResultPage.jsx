@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { renderBoxes } from "../utils/renderBox";
 import labels from "../utils/labels.json";
 import preventionTips from "../utils/prevention.json";
+import Sidebar from "../components/Sidebar";
 
 const ResultPage = () => {
   const location = useLocation();
@@ -70,6 +71,7 @@ const ResultPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
+      <Sidebar />
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-6">
           {/* Header */}
