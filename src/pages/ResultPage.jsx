@@ -5,7 +5,16 @@ import labels from "../utils/labels.json";
 import preventionTips from "../utils/prevention.json";
 import Sidebar from "../components/Sidebar";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ChevronDown, Check } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronDown,
+  Check,
+  Download,
+  Upload,
+  AlertCircle,
+} from "lucide-react";
+import { createRoboflowDataset } from "../utils/annotationExport";
+import { uploadToRoboflow } from "../utils/roboflowAPI";
 
 const ResultPage = () => {
   const location = useLocation();
@@ -14,6 +23,9 @@ const ResultPage = () => {
   const imageRef = useRef(null);
   const containerRef = useRef(null);
   const [expandedDetection, setExpandedDetection] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const { imageData, detections } = location.state || {};
 
   useEffect(() => {
@@ -71,6 +83,37 @@ const ResultPage = () => {
     return () => window.removeEventListener("resize", drawDetections);
   }, [imageData, detections, navigate]);
 
+  // Function to handle saving annotations to Roboflow
+  const handleSaveAnnotations = async () => {
+    if (!imageData || !detections) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadSuccess(false);
+
+    try {
+      // Create the dataset object
+      const dataset = createRoboflowDataset(imageData, detections);
+
+      // Get credentials from environment variables
+      const apiKey = import.meta.env.VITE_ROBOFLOW_API_KEY;
+      const projectId = import.meta.env.VITE_ROBOFLOW_PROJECT_ID;
+
+      if (!apiKey || !projectId) {
+        throw new Error("Roboflow API key or Project ID not configured");
+      }
+
+      // Upload to Roboflow
+      await uploadToRoboflow(dataset, apiKey, projectId);
+      setUploadSuccess(true);
+    } catch (error) {
+      console.error("Failed to upload to Roboflow:", error);
+      setUploadError(error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <Sidebar />
@@ -81,14 +124,51 @@ const ResultPage = () => {
             <h2 className="text-2xl font-bold text-green-800">
               Detection Results
             </h2>
-            <Link
-              to="/"
-              className="flex items-center px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-            >
-              <ArrowLeft className="mr-2 h-5 w-5" />
-              Back to Camera
-            </Link>
+            <div className="flex gap-3">
+              <button
+                onClick={handleSaveAnnotations}
+                className={`flex items-center px-5 py-2.5 text-white rounded-lg transition-colors ${
+                  isUploading
+                    ? "bg-blue-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+                disabled={!detections || detections.length === 0 || isUploading}
+              >
+                {isUploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-5 w-5" />
+                    Upload to Roboflow
+                  </>
+                )}
+              </button>
+              <Link
+                to="/"
+                className="flex items-center px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              >
+                <ArrowLeft className="mr-2 h-5 w-5" />
+                Back to Camera
+              </Link>
+            </div>
           </div>
+
+          {/* Upload Status Messages */}
+          {uploadSuccess && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center text-green-800">
+              <Check className="h-5 w-5 mr-2" />
+              Successfully uploaded to Roboflow!
+            </div>
+          )}
+          {uploadError && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-800">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              {uploadError}
+            </div>
+          )}
 
           {/* Main content - Image and Detections side by side */}
           <div className="flex flex-col lg:flex-row gap-6">
@@ -223,42 +303,6 @@ const ResultPage = () => {
                     ))
                   )}
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional information section */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
-          <h3 className="text-xl font-semibold text-green-800 mb-4">
-            What to do next?
-          </h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="border border-green-100 rounded-lg p-4 bg-green-50">
-              <h4 className="font-medium text-green-800 mb-2">
-                Treatment Options
-              </h4>
-              <p className="text-gray-700 text-sm">
-                Based on the detected diseases, consider consulting with your
-                local agricultural extension office for specific treatment
-                recommendations tailored to your region.
-              </p>
-            </div>
-            <div className="border border-green-100 rounded-lg p-4 bg-green-50">
-              <h4 className="font-medium text-green-800 mb-2">
-                Save Your Results
-              </h4>
-              <p className="text-gray-700 text-sm">
-                You can save these results for future reference or share them
-                with agricultural experts.
-              </p>
-              <div className="mt-3 flex gap-2">
-                <button className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors">
-                  Save Results
-                </button>
-                <button className="px-3 py-2 bg-white border border-green-600 text-green-600 hover:bg-green-50 rounded-lg text-sm transition-colors">
-                  Share Results
-                </button>
               </div>
             </div>
           </div>

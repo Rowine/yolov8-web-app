@@ -1,31 +1,51 @@
 {
+  "Bacterial Leaf Blight": [
+    "Use balanced amounts of plant nutrients, especially nitrogen.",
+    "Ensure good drainage of fields (in conventionally flooded crops) and nurseries.",
+    "Keep fields clean. Remove weed hosts and plow under rice stubble, straw, rice ratoons and volunteer seedlings, which can serve as hosts of bacteria.",
+    "Allow fallow fields to dry in order to suppress disease agents in the soil and plant residues."
+  ],
+  "Brown Planthopper": [
+    "Remove weeds from the field and surrounding areas.",
+    "Avoid indiscriminate use of insecticide, which destroys natural enemies.",
+    "Use a resistant variety. Contact your local agriculture office for an up-to-date list of available varieties.",
+    "Look for BPH daily in the seedbed, or weekly in the field, on stems and the water surface.",
+    "Use light traps (e.g., an electric bulb or kerosene lamp near a light colored wall or over a pan of water) at night when rice is prone to planthopper attack."
+  ],
+  "Rice Leaf Roller": [
+    "Use resistant varieties.Contact your local agriculture office for an up-to-date list of available varieties.",
+    "Follow rice with a different crop, or fallow period.",
+    "Avoid ratooning.",
+    "Flood and plow field after harvesting if possible.",
+    "Remove grassy weeds from fields and borders."
+  ],
   "Rice Leafhopper": [
-    "Use disease-resistant rice varieties",
-    "Ensure proper field drainage",
-    "Avoid excessive nitrogen fertilization",
-    "Practice crop rotation",
-    "Remove and destroy infected plant debris"
+    "Use GLH- and tungro-resistant varieties (check with local agri office for available types).",
+    "Limit to two rice crops per year and practice synchronized planting.",
+    "Transplant older seedlings (>3 weeks) to reduce susceptibility.",
+    "Plant early in the season; avoid peak GLH periods (use light traps and historical data).",
+    "Apply nitrogen wisely (e.g., via Leaf Color Chart) to prevent overgrowth or poor recovery."
   ],
-  "Brown Spot": [
-    "Maintain balanced soil nutrients",
-    "Apply proper amounts of potassium",
-    "Use certified disease-free seeds",
-    "Treat seeds with fungicides before planting",
-    "Maintain good field sanitation"
+  "Rice leaf blast": [
+    "Use resistant varieties and amend the soil with silica.",
+    "Raise seedlings in wetbeds, incorporating rice stalks into the soil.",
+    "Avoid close or dense planting to reduce humidity around plants.",
+    "Apply recommended fungicides as needed and ensure proper fertilization.",
+    "Effective water management is crucial, and all infected crop residues should be destroyed to prevent the spread of the disease."
   ],
-  "Leaf Smut": [
-    "Use resistant varieties",
-    "Apply recommended fungicides",
-    "Maintain proper spacing between plants",
-    "Remove infected plants",
-    "Practice proper water management"
+  "Sheath Blight": [
+    "Dry the field after harvest and monitor fertilization using the Leaf Color Chart and Minus-One Element Technique.",
+    "Use optimal seeding rates and wider spacing to reduce humidity.",
+    "Assess the field before maximum tillering and panicle emergence, and drain it briefly at maximum tillering.",
+    "Apply fungicides as needed on sheaths and affected leaves.",
+    "Practice sanitation by deep plowing to bury infected residues and exposing soil to sunlight."
   ],
-  "Rice Blast": [
-    "Plant resistant varieties",
-    "Avoid excessive nitrogen application",
-    "Maintain good drainage",
-    "Apply fungicides preventively",
-    "Time planting to avoid peak disease periods"
+  "Stem Borer": [
+    "Use resistant varieties.",
+    "Handpick and destroy egg masses at seedbed and transplanting.",
+    "Raise irrigation water periodically to submerge eggs on lower plant parts.",
+    "Cut leaf-tops before transplanting to reduce egg carry-over.",
+    "Practice proper timing and synchronous planting, harvest at ground level, remove stubble and volunteer rice, and plow and flood fields post-harvest."
   ],
   "Tungro": [
     "Use resistant varieties",
