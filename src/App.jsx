@@ -10,6 +10,7 @@ import Signup from "./components/authentication/signup";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LocationPage from "./pages/LocationPage";
 import ProfilePage from "./pages/ProfilePage";
+import DetectionHistoryPage from "./pages/DetectionHistoryPage";
 import useUserStore from "./store/userStore";
 
 const App = () => {
@@ -88,6 +89,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <DetectionHistoryPage />
             </ProtectedRoute>
           }
         />

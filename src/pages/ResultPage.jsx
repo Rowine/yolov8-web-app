@@ -15,6 +15,9 @@ import {
 } from "lucide-react";
 import { createRoboflowDataset } from "../utils/annotationExport";
 import { uploadToRoboflow } from "../utils/roboflowAPI";
+import { db } from "../config/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import useUserStore from "../store/userStore";
 
 const ResultPage = () => {
   const location = useLocation();
@@ -27,6 +30,7 @@ const ResultPage = () => {
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const { imageData, detections } = location.state || {};
+  const { user } = useUserStore();
 
   useEffect(() => {
     if (!imageData || !detections) {
@@ -78,10 +82,28 @@ const ResultPage = () => {
       drawDetections();
     }
 
+    // Save detections to Firestore
+    const saveDetections = async () => {
+      try {
+        for (const detection of detections) {
+          await addDoc(collection(db, "detections"), {
+            userId: user.uid,
+            detectedClass: detection.class,
+            confidence: detection.confidence,
+            timestamp: serverTimestamp(),
+          });
+        }
+      } catch (error) {
+        console.error("Error saving detections:", error);
+      }
+    };
+
+    saveDetections();
+
     // Redraw on window resize
     window.addEventListener("resize", drawDetections);
     return () => window.removeEventListener("resize", drawDetections);
-  }, [imageData, detections, navigate]);
+  }, [imageData, detections, navigate, user]);
 
   // Function to handle saving annotations to Roboflow
   const handleSaveAnnotations = async () => {
@@ -211,33 +233,6 @@ const ResultPage = () => {
                         Your rice plant appears to be healthy. Continue with
                         regular maintenance and monitoring.
                       </p>
-                      <div className="mt-4 p-2 bg-green-50 rounded-lg">
-                        <h5 className="font-medium text-green-800 mb-2">
-                          Maintenance Tips:
-                        </h5>
-                        <ul className="space-y-2 text-sm text-gray-700">
-                          <li className="flex items-start">
-                            <span className="inline-block w-4 h-4 rounded-full bg-green-200 text-green-800 flex-shrink-0 mr-2 mt-0.5 flex items-center justify-center text-xs">
-                              1
-                            </span>
-                            <span>
-                              Regular monitoring for early signs of disease
-                            </span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="inline-block w-4 h-4 rounded-full bg-green-200 text-green-800 flex-shrink-0 mr-2 mt-0.5 flex items-center justify-center text-xs">
-                              2
-                            </span>
-                            <span>Maintain proper water management</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="inline-block w-4 h-4 rounded-full bg-green-200 text-green-800 flex-shrink-0 mr-2 mt-0.5 flex items-center justify-center text-xs">
-                              3
-                            </span>
-                            <span>Keep the field clean and weed-free</span>
-                          </li>
-                        </ul>
-                      </div>
                     </div>
                   ) : (
                     detections.map((detection, index) => (
