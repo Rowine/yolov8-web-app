@@ -33,4 +33,4 @@ export class Webcam {
       videoRef.srcObject = null;
     } else alert("Please open Webcam first!");
   };
-}
+} 

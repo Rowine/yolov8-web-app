@@ -1,33 +1,28 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 
-// Define the center of the map (default location)
-const defaultCenter = {
+const DEFAULT_CENTER = {
   lat: 40.7128,
   lng: -74.006,
 };
 
-// Map container style
-const containerStyle = {
+const MAP_CONTAINER_STYLE = {
   width: "100%",
   height: "400px",
 };
 
-const LocationPicker = ({ apiKey, onLocationSelect }) => {
-  // State for selected location
-  const [selectedLocation, setSelectedLocation] = useState(defaultCenter);
+export const LocationPicker = ({ apiKey, onLocationSelect }) => {
+  const [selectedLocation, setSelectedLocation] = useState(DEFAULT_CENTER);
   const [address, setAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const inputRef = useRef(null);
 
-  // Load the Google Maps JavaScript API
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: apiKey,
     libraries: ["places"],
   });
 
-  // Function to get address from coordinates (reverse geocoding)
   const getAddressFromCoordinates = useCallback(
     async (lat, lng) => {
       try {
@@ -37,17 +32,10 @@ const LocationPicker = ({ apiKey, onLocationSelect }) => {
         );
         const data = await response.json();
 
-        if (data.results && data.results.length > 0) {
+        if (data.results?.[0]) {
           const formattedAddress = data.results[0].formatted_address;
           setAddress(formattedAddress);
-
-          if (onLocationSelect) {
-            onLocationSelect({
-              lat,
-              lng,
-              address: formattedAddress,
-            });
-          }
+          onLocationSelect?.({ lat, lng, address: formattedAddress });
         }
       } catch (error) {
         console.error("Error fetching address:", error);
@@ -58,29 +46,21 @@ const LocationPicker = ({ apiKey, onLocationSelect }) => {
     [apiKey, onLocationSelect]
   );
 
-  // Function to get coordinates from address (geocoding)
   const getCoordinatesFromAddress = useCallback(
-    async (address) => {
+    async (searchAddress) => {
       try {
         setIsLoading(true);
         const response = await fetch(
           `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-            address
+            searchAddress
           )}&key=${apiKey}`
         );
         const data = await response.json();
 
-        if (data.results && data.results.length > 0) {
+        if (data.results?.[0]?.geometry?.location) {
           const { lat, lng } = data.results[0].geometry.location;
           setSelectedLocation({ lat, lng });
-
-          if (onLocationSelect) {
-            onLocationSelect({
-              lat,
-              lng,
-              address,
-            });
-          }
+          onLocationSelect?.({ lat, lng, address: searchAddress });
         }
       } catch (error) {
         console.error("Error fetching coordinates:", error);
@@ -91,9 +71,8 @@ const LocationPicker = ({ apiKey, onLocationSelect }) => {
     [apiKey, onLocationSelect]
   );
 
-  // Handle map click
   const handleMapClick = useCallback(
-    (removeEventListener) => {
+    (event) => {
       if (event.latLng) {
         const lat = event.latLng.lat();
         const lng = event.latLng.lng();
@@ -104,7 +83,6 @@ const LocationPicker = ({ apiKey, onLocationSelect }) => {
     [getAddressFromCoordinates]
   );
 
-  // Handle address input change
   const handleAddressSubmit = (e) => {
     e.preventDefault();
     if (address.trim()) {
@@ -112,11 +90,10 @@ const LocationPicker = ({ apiKey, onLocationSelect }) => {
     }
   };
 
-  // Initialize map when loaded
   useEffect(() => {
     if (isLoaded && !mapLoaded) {
       setMapLoaded(true);
-      // Get user's current location if available
+
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -127,20 +104,16 @@ const LocationPicker = ({ apiKey, onLocationSelect }) => {
             setSelectedLocation(userLocation);
             getAddressFromCoordinates(userLocation.lat, userLocation.lng);
           },
-          (error) => {
-            console.error("Error getting user location:", error);
-            // Use default location if user location is not available
-            getAddressFromCoordinates(defaultCenter.lat, defaultCenter.lng);
+          () => {
+            getAddressFromCoordinates(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
           }
         );
       } else {
-        // Use default location if geolocation is not supported
-        getAddressFromCoordinates(defaultCenter.lat, defaultCenter.lng);
+        getAddressFromCoordinates(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
       }
     }
   }, [isLoaded, mapLoaded, getAddressFromCoordinates]);
 
-  // Render loading state
   if (loadError) {
     return (
       <div className="p-4 rounded-md bg-red-50 text-red-600">
@@ -171,7 +144,7 @@ const LocationPicker = ({ apiKey, onLocationSelect }) => {
         />
         <button
           type="submit"
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"
+          className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isLoading}
         >
           {isLoading ? "Loading..." : "Search"}
@@ -180,7 +153,7 @@ const LocationPicker = ({ apiKey, onLocationSelect }) => {
 
       <div className="rounded-md overflow-hidden border border-gray-200 shadow-sm">
         <GoogleMap
-          mapContainerStyle={containerStyle}
+          mapContainerStyle={MAP_CONTAINER_STYLE}
           center={selectedLocation}
           zoom={14}
           onClick={handleMapClick}
@@ -202,18 +175,6 @@ const LocationPicker = ({ apiKey, onLocationSelect }) => {
           <Marker position={selectedLocation} />
         </GoogleMap>
       </div>
-
-      <div className="text-sm text-gray-500">
-        {isLoading ? (
-          <p>Loading location data...</p>
-        ) : (
-          <p>
-            Click anywhere on the map to select a location or search by address.
-          </p>
-        )}
-      </div>
     </div>
   );
 };
-
-export default LocationPicker;

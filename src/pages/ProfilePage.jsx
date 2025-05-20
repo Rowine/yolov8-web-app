@@ -18,16 +18,16 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
-import Sidebar from "../components/Sidebar";
+import { Sidebar } from "../components/Sidebar";
 
-function LocationMarker({ onSelect }) {
+const LocationMarker = ({ onSelect }) => {
   useMapEvents({
     click(e) {
       onSelect(e.latlng);
     },
   });
   return null;
-}
+};
 
 const ProfilePage = () => {
   const { user } = useUserStore();

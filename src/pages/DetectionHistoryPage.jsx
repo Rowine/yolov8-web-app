@@ -2,8 +2,51 @@ import React, { useEffect, useState } from "react";
 import { db } from "../config/firebase";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import useUserStore from "../store/userStore";
-import Sidebar from "../components/Sidebar";
+import { Sidebar } from "../components/Sidebar";
 import { Calendar, Clock } from "lucide-react";
+
+const DetectionCard = ({ detection, formatDate, formatTime }) => (
+  <div className="border border-green-100 rounded-lg p-4 hover:bg-green-50 transition-colors">
+    <div className="flex justify-between items-start">
+      <div>
+        <h3 className="text-lg font-medium text-gray-900">
+          {detection.detectedClass}
+        </h3>
+        <div className="mt-1 space-y-1">
+          <div className="flex items-center text-sm text-gray-500">
+            <Calendar className="w-4 h-4 mr-1" />
+            {formatDate(detection.timestamp)}
+          </div>
+          <div className="flex items-center text-sm text-gray-500">
+            <Clock className="w-4 h-4 mr-1" />
+            {formatTime(detection.timestamp)}
+          </div>
+        </div>
+      </div>
+      <span
+        className={`px-3 py-1 rounded-full text-sm font-medium ${
+          detection.confidence > 0.9
+            ? "bg-red-100 text-red-800"
+            : detection.confidence > 0.7
+            ? "bg-yellow-100 text-yellow-800"
+            : "bg-green-100 text-green-800"
+        }`}
+      >
+        {(detection.confidence * 100).toFixed(1)}% confidence
+      </span>
+    </div>
+  </div>
+);
+
+const CategoryHeader = ({ category }) => (
+  <div className="flex items-center justify-center mb-6">
+    <div className="flex-grow border-t border-gray-300"></div>
+    <h2 className="mx-4 text-sm font-medium text-gray-500 uppercase tracking-wider">
+      {category}
+    </h2>
+    <div className="flex-grow border-t border-gray-300"></div>
+  </div>
+);
 
 const DetectionHistoryPage = () => {
   const { user } = useUserStore();
@@ -115,49 +158,6 @@ const DetectionHistoryPage = () => {
     return b.localeCompare(a); // For years, sort in descending order
   });
 
-  const DetectionCard = ({ detection }) => (
-    <div className="border border-green-100 rounded-lg p-4 hover:bg-green-50 transition-colors">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-lg font-medium text-gray-900">
-            {detection.detectedClass}
-          </h3>
-          <div className="mt-1 space-y-1">
-            <div className="flex items-center text-sm text-gray-500">
-              <Calendar className="w-4 h-4 mr-1" />
-              {formatDate(detection.timestamp)}
-            </div>
-            <div className="flex items-center text-sm text-gray-500">
-              <Clock className="w-4 h-4 mr-1" />
-              {formatTime(detection.timestamp)}
-            </div>
-          </div>
-        </div>
-        <span
-          className={`px-3 py-1 rounded-full text-sm font-medium ${
-            detection.confidence > 0.9
-              ? "bg-red-100 text-red-800"
-              : detection.confidence > 0.7
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-green-100 text-green-800"
-          }`}
-        >
-          {(detection.confidence * 100).toFixed(1)}% confidence
-        </span>
-      </div>
-    </div>
-  );
-
-  const CategoryHeader = ({ category }) => (
-    <div className="flex items-center justify-center mb-6">
-      <div className="flex-grow border-t border-gray-300"></div>
-      <h2 className="mx-4 text-sm font-medium text-gray-500 uppercase tracking-wider">
-        {category}
-      </h2>
-      <div className="flex-grow border-t border-gray-300"></div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-green-50 flex flex-col">
       <Sidebar />
@@ -196,7 +196,12 @@ const DetectionHistoryPage = () => {
                   <CategoryHeader category={category} />
                   <div className="space-y-4">
                     {groupedDetections[category].map((detection) => (
-                      <DetectionCard key={detection.id} detection={detection} />
+                      <DetectionCard
+                        key={detection.id}
+                        detection={detection}
+                        formatDate={formatDate}
+                        formatTime={formatTime}
+                      />
                     ))}
                   </div>
                 </div>

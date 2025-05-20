@@ -1,40 +1,47 @@
-import { useState, useEffect } from "react";
-import { auth } from "../../config/firebase";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { ArrowLeft, Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../../config/firebase";
 import useUserStore from "../../store/userStore";
+import { InputField } from "./InputField";
 
-const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export const LoginForm = () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    showPassword: false,
+  });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const togglePasswordVisibility = () => {
+    setFormData((prev) => ({ ...prev, showPassword: !prev.showPassword }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Reset form and error
     setError("");
 
-    // Simple validation
+    const { email, password } = formData;
+
     if (!email || !password) {
       setError("Please fill in all fields");
       return;
     }
 
-    // Login with email and password
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password
       );
-
-      // Wait for the userStore to update with the user data
       await useUserStore.getState().setUser(userCredential.user);
-
       navigate("/");
     } catch (error) {
       console.error(error);
@@ -67,54 +74,40 @@ const Login = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="email" className="block text-gray-700 text-lg">
-              Email Address
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="farmer@example.com"
-              />
-            </div>
-          </div>
+          <InputField
+            id="email"
+            name="email"
+            type="email"
+            label="Email Address"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="farmer@example.com"
+            icon={<Mail className="h-5 w-5 text-gray-400" />}
+          />
 
-          <div className="space-y-2">
-            <label htmlFor="password" className="block text-gray-700 text-lg">
-              Password
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Your password"
-              />
+          <InputField
+            id="password"
+            name="password"
+            type={formData.showPassword ? "text" : "password"}
+            label="Password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Your password"
+            icon={<Lock className="h-5 w-5 text-gray-400" />}
+            rightIcon={
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={togglePasswordVisibility}
+                className="focus:outline-none"
               >
-                {showPassword ? (
+                {formData.showPassword ? (
                   <EyeOff className="h-5 w-5 text-gray-400" />
                 ) : (
                   <Eye className="h-5 w-5 text-gray-400" />
                 )}
               </button>
-            </div>
-          </div>
+            }
+          />
 
           <button
             type="submit"
@@ -139,5 +132,3 @@ const Login = () => {
     </main>
   );
 };
-
-export default Login;

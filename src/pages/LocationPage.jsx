@@ -27,7 +27,7 @@ function LocationMarker({ onSelect }) {
   return null;
 }
 
-export default function FarmLocationPicker() {
+const LocationPage = () => {
   const [marker, setMarker] = useState(null);
   const [error, setError] = useState("");
   const auth = getAuth();
@@ -100,4 +100,6 @@ export default function FarmLocationPicker() {
       </div>
     </main>
   );
-}
+};
+
+export default LocationPage;

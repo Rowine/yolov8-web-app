@@ -1,25 +1,34 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import * as tf from "@tensorflow/tfjs";
-import "@tensorflow/tfjs-backend-webgl"; // set backend to webgl
+import "@tensorflow/tfjs-backend-webgl";
+
+// Pages
 import ResultPage from "./pages/ResultPage";
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
-import Login from "./components/authentication/login";
-import Signup from "./components/authentication/signup";
-import ProtectedRoute from "./components/ProtectedRoute";
 import LocationPage from "./pages/LocationPage";
 import ProfilePage from "./pages/ProfilePage";
 import DetectionHistoryPage from "./pages/DetectionHistoryPage";
+
+// Components
+import { LoginForm } from "./components/authentication/LoginForm";
+import { SignupForm } from "./components/authentication/SignupForm";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { LoadingSpinner } from "./components/LoadingSpinner";
+
+// Store & Config
 import useUserStore from "./store/userStore";
+import { ROUTES } from "./config";
 
 const App = () => {
-  const [loading, setLoading] = useState({ loading: true, progress: 0 }); // loading state
-  const [model, setModel] = useState({
+  const [modelState, setModelState] = useState({
+    loading: true,
+    progress: 0,
     net: null,
     inputShape: [1, 0, 0, 3],
     modelName: "yolov8n_best_04-14-25",
-  }); // init model & input shape
+  });
 
   const { initialize } = useUserStore();
 
@@ -29,71 +38,111 @@ const App = () => {
   }, [initialize]);
 
   useEffect(() => {
-    tf.ready().then(async () => {
-      const yolov8 = await tf.loadGraphModel(
-        `${window.location.origin}/${model.modelName}_web_model/model.json`,
-        {
-          onProgress: (fractions) => {
-            setLoading({ loading: true, progress: fractions }); // set loading fractions
-          },
-        }
-      ); // load model
+    const initializeModel = async () => {
+      await tf.ready();
 
-      // warming up model
-      const dummyInput = tf.ones(yolov8.inputs[0].shape);
-      const warmupResults = yolov8.execute(dummyInput);
+      try {
+        const yolov8 = await tf.loadGraphModel(
+          `${window.location.origin}/${modelState.modelName}_web_model/model.json`,
+          {
+            onProgress: (fractions) => {
+              setModelState((prev) => ({
+                ...prev,
+                loading: true,
+                progress: fractions,
+              }));
+            },
+          }
+        );
 
-      setLoading({ loading: false, progress: 1 });
-      setModel({
-        ...model,
-        net: yolov8,
-        inputShape: yolov8.inputs[0].shape,
-      }); // set model & input shape
+        // Warm up model
+        const dummyInput = tf.ones(yolov8.inputs[0].shape);
+        const warmupResults = yolov8.execute(dummyInput);
 
-      tf.dispose([warmupResults, dummyInput]); // cleanup memory
-    });
+        setModelState((prev) => ({
+          ...prev,
+          loading: false,
+          progress: 1,
+          net: yolov8,
+          inputShape: yolov8.inputs[0].shape,
+        }));
+
+        // Cleanup memory
+        tf.dispose([warmupResults, dummyInput]);
+      } catch (error) {
+        console.error("Error initializing model:", error);
+        setModelState((prev) => ({
+          ...prev,
+          loading: false,
+          error: "Failed to load model",
+        }));
+      }
+    };
+
+    initializeModel();
   }, []);
+
+  if (modelState.loading) {
+    return (
+      <LoadingSpinner>
+        Loading model... {Math.round(modelState.progress * 100)}%
+      </LoadingSpinner>
+    );
+  }
+
+  if (modelState.error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-red-50 text-red-600 p-4">
+        <p>{modelState.error}</p>
+      </div>
+    );
+  }
 
   return (
     <Router>
       <Routes>
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path={ROUTES.AUTH} element={<AuthPage />} />
+        <Route path={ROUTES.LOGIN} element={<LoginForm />} />
+        <Route path={ROUTES.SIGNUP} element={<SignupForm />} />
+
         <Route
-          path="/"
+          path={ROUTES.HOME}
           element={
             <ProtectedRoute>
-              <HomePage model={model} loading={loading} />
+              <HomePage model={modelState} />
             </ProtectedRoute>
           }
         />
+
         <Route
-          path="/result"
+          path={ROUTES.RESULT}
           element={
             <ProtectedRoute>
               <ResultPage />
             </ProtectedRoute>
           }
         />
+
         <Route
-          path="/location"
+          path={ROUTES.LOCATION}
           element={
             <ProtectedRoute>
               <LocationPage />
             </ProtectedRoute>
           }
         />
+
         <Route
-          path="/profile"
+          path={ROUTES.PROFILE}
           element={
             <ProtectedRoute>
               <ProfilePage />
             </ProtectedRoute>
           }
         />
+
         <Route
-          path="/history"
+          path={ROUTES.HISTORY}
           element={
             <ProtectedRoute>
               <DetectionHistoryPage />

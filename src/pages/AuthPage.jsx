@@ -1,5 +1,21 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ROUTES } from "../config";
+
+const AuthButton = ({ to, variant = "primary", children }) => (
+  <Link
+    to={to}
+    className={`flex items-center justify-center w-full py-3 px-4 rounded-lg text-lg font-medium transition-colors ${
+      variant === "primary"
+        ? "bg-green-600 hover:bg-green-700 text-white"
+        : "bg-white border-2 border-green-600 text-green-600 hover:bg-green-50"
+    }`}
+  >
+    {children}
+    <ArrowRight className="ml-2 h-5 w-5" />
+  </Link>
+);
+
 const AuthPage = () => {
   return (
     <main className="min-h-screen bg-green-50 flex flex-col items-center justify-center p-4">
@@ -10,6 +26,7 @@ const AuthPage = () => {
               src="/icon-192x192.png"
               alt="Rice Plant Logo"
               className="h-20 w-20"
+              loading="lazy"
             />
           </div>
           <h1 className="mt-4 text-2xl font-bold text-green-800">
@@ -21,21 +38,11 @@ const AuthPage = () => {
         </div>
 
         <div className="space-y-4">
-          <Link
-            to="/login"
-            className="flex items-center justify-center w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg text-lg font-medium transition-colors"
-          >
-            Login to Your Account
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
+          <AuthButton to={ROUTES.LOGIN}>Login to Your Account</AuthButton>
 
-          <Link
-            to="/signup"
-            className="flex items-center justify-center w-full py-3 px-4 bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 rounded-lg text-lg font-medium transition-colors"
-          >
+          <AuthButton to={ROUTES.SIGNUP} variant="secondary">
             Create New Account
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
+          </AuthButton>
         </div>
       </div>
     </main>

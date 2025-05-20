@@ -1,10 +1,25 @@
 import { useRef, useEffect, useState } from "react";
+import { Camera } from "lucide-react";
 import useUserStore from "../store/userStore";
-import Loader from "../components/loader";
-import ButtonHandler from "../components/btn-handler";
-import Sidebar from "../components/Sidebar";
+import { LoadingSpinner } from "../components/LoadingSpinner";
+import { CameraControls } from "../components/CameraControls";
+import { Sidebar } from "../components/Sidebar";
 
-const HomePage = ({ model, loading }) => {
+const CameraPlaceholder = () => (
+  <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+    <div className="text-center p-4">
+      <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-3">
+        <Camera className="h-8 w-8 text-green-600" />
+      </div>
+      <p className="text-lg font-medium">Click "Start Camera" to begin</p>
+      <p className="text-sm">
+        Position your rice plant in the frame for best results
+      </p>
+    </div>
+  </div>
+);
+
+const HomePage = ({ model }) => {
   const cameraRef = useRef(null);
   const canvasRef = useRef(null);
   const { initialize, user } = useUserStore();
@@ -15,9 +30,9 @@ const HomePage = ({ model, loading }) => {
     return () => unsubscribe();
   }, [initialize]);
 
-  // Development only
+  // Development logging
   useEffect(() => {
-    if (user) {
+    if (process.env.NODE_ENV === "development" && user) {
       console.log("Current User Details:", {
         name: user.name,
         email: user.email,
@@ -29,12 +44,17 @@ const HomePage = ({ model, loading }) => {
     }
   }, [user]);
 
+  if (model.loading) {
+    return (
+      <LoadingSpinner>
+        Loading model... {(model.progress * 100).toFixed(2)}%
+      </LoadingSpinner>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-green-50 flex flex-col">
       <Sidebar />
-      {loading.loading && (
-        <Loader>Loading model... {(loading.progress * 100).toFixed(2)}%</Loader>
-      )}
 
       <div className="flex-1 px-4 py-8 flex flex-col max-w-5xl mx-auto w-full">
         <div className="text-center mb-6">
@@ -69,44 +89,10 @@ const HomePage = ({ model, loading }) => {
               className="absolute inset-0 w-full h-full object-contain"
             />
 
-            {/* Placeholder message when no camera is active */}
-            {!isCameraActive && (
-              <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                <div className="text-center p-4">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 text-green-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-lg font-medium">
-                    Click "Start Camera" to begin
-                  </p>
-                  <p className="text-sm">
-                    Position your rice plant in the frame for best results
-                  </p>
-                </div>
-              </div>
-            )}
+            {!isCameraActive && <CameraPlaceholder />}
           </div>
 
-          <ButtonHandler
+          <CameraControls
             cameraRef={cameraRef}
             canvasRef={canvasRef}
             model={model}

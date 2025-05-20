@@ -1,9 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { renderBoxes } from "../utils/renderBox";
-import labels from "../utils/labels.json";
-import preventionTips from "../utils/prevention.json";
-import Sidebar from "../components/Sidebar";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -13,11 +9,13 @@ import {
   Upload,
   AlertCircle,
 } from "lucide-react";
-import { createRoboflowDataset } from "../utils/annotationExport";
-import { uploadToRoboflow } from "../utils/roboflowAPI";
 import { db } from "../config/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import useUserStore from "../store/userStore";
+import { useCanvas } from "../hooks/useCanvas";
+import { useRoboflow } from "../hooks/useRoboflow";
+import preventionTips from "../utils/data/prevention.json";
+import { Sidebar } from "../components/Sidebar";
 
 const ResultPage = () => {
   const location = useLocation();
@@ -26,11 +24,22 @@ const ResultPage = () => {
   const imageRef = useRef(null);
   const containerRef = useRef(null);
   const [expandedDetection, setExpandedDetection] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState(null);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const { imageData, detections } = location.state || {};
   const { user } = useUserStore();
+  const { imageData, detections } = location.state || {};
+
+  // Initialize custom hooks
+  const { drawDetections } = useCanvas({
+    canvasRef,
+    imageRef,
+    detections,
+  });
+
+  const {
+    uploadToDataset,
+    isUploading,
+    error: uploadError,
+    isSuccess: uploadSuccess,
+  } = useRoboflow();
 
   useEffect(() => {
     if (!imageData || !detections) {
@@ -39,40 +48,6 @@ const ResultPage = () => {
     }
 
     const image = imageRef.current;
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-
-    const drawDetections = () => {
-      // Get the actual rendered dimensions of the image
-      const rect = image.getBoundingClientRect();
-
-      // Set canvas size to match the displayed image size
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-
-      // Extract detection data
-      const boxes_data = [];
-      const scores_data = [];
-      const classes_data = [];
-
-      detections.forEach((det) => {
-        // Scale bounding box to match the displayed image size
-        const [y1, x1, y2, x2] = det.bbox;
-        const scaledBox = [
-          y1 * rect.height,
-          x1 * rect.width,
-          y2 * rect.height,
-          x2 * rect.width,
-        ];
-        boxes_data.push(...scaledBox);
-        scores_data.push(det.confidence);
-        const classIndex = labels.indexOf(det.class);
-        classes_data.push(classIndex);
-      });
-
-      // Draw boxes
-      renderBoxes(canvas, boxes_data, scores_data, classes_data, [1, 1]);
-    };
 
     // Draw boxes when image loads
     image.onload = drawDetections;
@@ -99,41 +74,11 @@ const ResultPage = () => {
     };
 
     saveDetections();
+  }, [imageData, detections, navigate, user, drawDetections]);
 
-    // Redraw on window resize
-    window.addEventListener("resize", drawDetections);
-    return () => window.removeEventListener("resize", drawDetections);
-  }, [imageData, detections, navigate, user]);
-
-  // Function to handle saving annotations to Roboflow
   const handleSaveAnnotations = async () => {
     if (!imageData || !detections) return;
-
-    setIsUploading(true);
-    setUploadError(null);
-    setUploadSuccess(false);
-
-    try {
-      // Create the dataset object
-      const dataset = createRoboflowDataset(imageData, detections);
-
-      // Get credentials from environment variables
-      const apiKey = import.meta.env.VITE_ROBOFLOW_API_KEY;
-      const projectId = import.meta.env.VITE_ROBOFLOW_PROJECT_ID;
-
-      if (!apiKey || !projectId) {
-        throw new Error("Roboflow API key or Project ID not configured");
-      }
-
-      // Upload to Roboflow
-      await uploadToRoboflow(dataset, apiKey, projectId);
-      setUploadSuccess(true);
-    } catch (error) {
-      console.error("Failed to upload to Roboflow:", error);
-      setUploadError(error.message);
-    } finally {
-      setIsUploading(false);
-    }
+    await uploadToDataset(imageData, detections);
   };
 
   return (
@@ -192,9 +137,9 @@ const ResultPage = () => {
             </div>
           )}
 
-          {/* Main content - Image and Detections side by side */}
+          {/* Main content */}
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Image container - Takes 2/3 of the space on large screens */}
+            {/* Image container */}
             <div className="lg:w-2/3">
               <div
                 ref={containerRef}
@@ -214,7 +159,7 @@ const ResultPage = () => {
               </div>
             </div>
 
-            {/* Detections container - Takes 1/3 of the space on large screens */}
+            {/* Detections container */}
             <div className="lg:w-1/3">
               <div className="bg-green-50 rounded-lg p-4 h-full border border-green-100">
                 <h3 className="text-lg font-semibold mb-3 text-green-800">

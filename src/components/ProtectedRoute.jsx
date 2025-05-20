@@ -1,19 +1,17 @@
 import { Navigate } from "react-router-dom";
 import useUserStore from "../store/userStore";
-import Spinner from "./Spinner";
+import { LoadingSpinner } from "./LoadingSpinner";
 
-const ProtectedRoute = ({ children }) => {
+export const ProtectedRoute = ({ children }) => {
   const { user, loading } = useUserStore();
 
   if (loading) {
-    return <Spinner />;
+    return <LoadingSpinner>Checking authentication...</LoadingSpinner>;
   }
 
   if (!user) {
-    return <Navigate to="/auth" />;
+    return <Navigate to="/auth" replace />;
   }
 
   return children;
 };
-
-export default ProtectedRoute;
