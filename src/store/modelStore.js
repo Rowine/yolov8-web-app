@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import * as tf from "@tensorflow/tfjs";
+import useModelVersionStore from './modelVersionStore';
+
+const FIREBASE_HOST = 'https://rice-pest-disease-detection.web.app';
 
 const useModelStore = create((set, get) => ({
   loading: true,
@@ -18,14 +21,14 @@ const useModelStore = create((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      const yolov8 = await tf.loadGraphModel(
-        `${window.location.origin}/${get().modelName}/model.json`,
-        {
-          onProgress: (fractions) => {
-            set({ loading: true, progress: fractions });
-          },
-        }
-      );
+      const currentVersion = useModelVersionStore.getState().currentVersion;
+      const modelPath = `${FIREBASE_HOST}/models/${currentVersion}/model.json`;
+
+      const yolov8 = await tf.loadGraphModel(modelPath, {
+        onProgress: (fractions) => {
+          set({ loading: true, progress: fractions });
+        },
+      });
 
       // Warm up model
       const dummyInput = tf.ones(yolov8.inputs[0].shape);
@@ -36,6 +39,7 @@ const useModelStore = create((set, get) => ({
         progress: 1,
         net: yolov8,
         inputShape: yolov8.inputs[0].shape,
+        modelName: currentVersion,
         isInitialized: true,
       });
 
@@ -49,6 +53,20 @@ const useModelStore = create((set, get) => ({
         isInitialized: false,
       });
     }
+  },
+
+  resetModel: () => {
+    if (get().net) {
+      get().net.dispose();
+    }
+    set({
+      loading: true,
+      progress: 0,
+      net: null,
+      inputShape: [1, 0, 0, 3],
+      error: null,
+      isInitialized: false,
+    });
   },
 }));
 

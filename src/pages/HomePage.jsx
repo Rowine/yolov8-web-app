@@ -23,7 +23,7 @@ const CameraPlaceholder = () => (
 const HomePage = () => {
   const cameraRef = useRef(null);
   const canvasRef = useRef(null);
-  const { initialize, user } = useUserStore();
+  const { user } = useUserStore();
   const {
     loading,
     progress,
@@ -34,11 +34,6 @@ const HomePage = () => {
     modelName,
   } = useModelStore();
   const [isCameraActive, setIsCameraActive] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = initialize();
-    return () => unsubscribe();
-  }, [initialize]);
 
   useEffect(() => {
     initializeModel();
