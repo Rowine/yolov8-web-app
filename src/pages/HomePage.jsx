@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Camera } from "lucide-react";
 import useUserStore from "../store/userStore";
+import useModelStore from "../store/modelStore";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { CameraControls } from "../components/CameraControls";
 import { Sidebar } from "../components/Sidebar";
@@ -19,16 +20,29 @@ const CameraPlaceholder = () => (
   </div>
 );
 
-const HomePage = ({ model }) => {
+const HomePage = () => {
   const cameraRef = useRef(null);
   const canvasRef = useRef(null);
   const { initialize, user } = useUserStore();
+  const {
+    loading,
+    progress,
+    error,
+    initializeModel,
+    net,
+    inputShape,
+    modelName,
+  } = useModelStore();
   const [isCameraActive, setIsCameraActive] = useState(false);
 
   useEffect(() => {
     const unsubscribe = initialize();
     return () => unsubscribe();
   }, [initialize]);
+
+  useEffect(() => {
+    initializeModel();
+  }, [initializeModel]);
 
   // Development logging
   useEffect(() => {
@@ -44,11 +58,19 @@ const HomePage = ({ model }) => {
     }
   }, [user]);
 
-  if (model.loading) {
+  if (loading) {
     return (
       <LoadingSpinner>
-        Loading model... {(model.progress * 100).toFixed(2)}%
+        Loading model... {(progress * 100).toFixed(2)}%
       </LoadingSpinner>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-red-50 text-red-600 p-4">
+        <p>{error}</p>
+      </div>
     );
   }
 
@@ -67,7 +89,7 @@ const HomePage = ({ model }) => {
           <p className="text-gray-600 text-sm">
             Using:{" "}
             <span className="bg-green-100 text-green-800 rounded-full px-3 py-1 text-sm font-medium">
-              {model.modelName}
+              {modelName}
             </span>
           </p>
         </div>
@@ -83,8 +105,8 @@ const HomePage = ({ model }) => {
               onEnded={() => setIsCameraActive(false)}
             />
             <canvas
-              width={model.inputShape[1]}
-              height={model.inputShape[2]}
+              width={inputShape[1]}
+              height={inputShape[2]}
               ref={canvasRef}
               className="absolute inset-0 w-full h-full object-contain"
             />
@@ -95,7 +117,7 @@ const HomePage = ({ model }) => {
           <CameraControls
             cameraRef={cameraRef}
             canvasRef={canvasRef}
-            model={model}
+            model={{ net, inputShape, modelName }}
             onCameraStart={() => setIsCameraActive(true)}
             onCameraStop={() => setIsCameraActive(false)}
           />

@@ -3,13 +3,13 @@ import useUserStore from "../store/userStore";
 import { LoadingSpinner } from "./LoadingSpinner";
 
 export const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useUserStore();
+  const { user, isLoading, isAuthenticated } = useUserStore();
 
-  if (loading) {
+  if (isLoading) {
     return <LoadingSpinner>Checking authentication...</LoadingSpinner>;
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
 

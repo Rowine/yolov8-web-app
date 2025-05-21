@@ -35,6 +35,7 @@ const useUserStore = create((set, get) => ({
   user: null,
   isLoading: true,
   isAuthenticated: false,
+  isInitialized: false,
 
   /**
    * Updates user data in the store
@@ -95,7 +96,8 @@ const useUserStore = create((set, get) => ({
       await signOut(auth);
       set({
         user: null,
-        isAuthenticated: false
+        isAuthenticated: false,
+        isLoading: false
       });
     } catch (error) {
       console.error('Error signing out:', error);
@@ -108,9 +110,16 @@ const useUserStore = create((set, get) => ({
    * @returns {Function} Unsubscribe function
    */
   initialize: () => {
-    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+    // If already initialized, don't initialize again
+    if (get().isInitialized) {
+      return () => { };
+    }
+
+    set({ isLoading: true });
+
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
       if (authUser) {
-        get().setUser(authUser);
+        await get().setUser(authUser);
       } else {
         set({
           user: null,
@@ -118,7 +127,9 @@ const useUserStore = create((set, get) => ({
           isAuthenticated: false
         });
       }
+      set({ isInitialized: true });
     });
+
     return unsubscribe;
   },
 }));
