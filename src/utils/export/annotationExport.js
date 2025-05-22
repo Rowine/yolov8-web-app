@@ -19,16 +19,17 @@ export const detectionsToYOLO = (detections) => {
   const annotations = detections.map(detection => {
     const [y1, x1, y2, x2] = detection.bbox;
 
-    // Calculate center points and dimensions
-    const x_center = (x1 + x2) / 2;
-    const y_center = (y1 + y2) / 2;
+    // Calculate normalized center points and dimensions
+    // Note: bbox coordinates are already normalized (0-1) from the detection process
     const width = Math.abs(x2 - x1);
     const height = Math.abs(y2 - y1);
+    const x_center = x1 + (width / 2);
+    const y_center = y1 + (height / 2);
 
     // Get class ID from label map
     const class_id = Object.entries(labelMap).find(([_, label]) => label === detection.class)[0];
 
-    // Return YOLO format string
+    // Return YOLO format string with 6 decimal precision
     return `${class_id} ${x_center.toFixed(6)} ${y_center.toFixed(6)} ${width.toFixed(6)} ${height.toFixed(6)}`;
   }).join('\n');
 

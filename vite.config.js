@@ -54,6 +54,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/semaphore/, ''),
         secure: false,
       }
-    }
+    },
+    cors: false,
   }
 });
