@@ -16,6 +16,7 @@ import { useCanvas } from "../hooks/useCanvas";
 import { useRoboflow } from "../hooks/useRoboflow";
 import preventionTips from "../utils/data/prevention.json";
 import { Sidebar } from "../components/Sidebar";
+import { DetectionNotifier } from "../components/DetectionNotifier";
 
 const ResultPage = () => {
   const location = useLocation();
@@ -248,6 +249,14 @@ const ResultPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Only show DetectionNotifier if there are detections and user has farmLocation */}
+      {detections && detections.length > 0 && user?.farmLocation && (
+        <DetectionNotifier
+          detectedIssues={detections.map((d) => ({ name: d.class }))}
+          currentLocation={user.farmLocation}
+        />
+      )}
     </div>
   );
 };

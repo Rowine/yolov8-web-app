@@ -46,4 +46,14 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    proxy: {
+      '/api/semaphore': {
+        target: 'https://api.semaphore.co/api/v4',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/semaphore/, ''),
+        secure: false,
+      }
+    }
+  }
 });
