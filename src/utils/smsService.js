@@ -13,11 +13,8 @@ export const sendSMS = async (phoneNumber, message) => {
   const SEMAPHORE_API_KEY = import.meta.env.VITE_SEMAPHORE_API_KEY;
   const SENDER_NAME = import.meta.env.VITE_SEMAPHORE_SENDER_NAME || 'FARMAPP';
 
-  // Use different endpoints for development and production
-  const endpoint = '/api/semaphore/messages'
-
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch('/api/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
