@@ -1,4 +1,13 @@
 /**
+ * Clamps a number between min and max values
+ * @param {number} num Number to clamp
+ * @param {number} min Minimum value
+ * @param {number} max Maximum value
+ * @returns {number} Clamped value
+ */
+const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+
+/**
  * Converts detection results to YOLO format
  * YOLO format: <class_id> <x_center> <y_center> <width> <height>
  * All bbox coordinates are normalized (0-1)
@@ -12,24 +21,31 @@ export const detectionsToYOLO = (detections) => {
   const labels = detections.map(det => det.class);
   const uniqueLabels = [...new Set(labels)];
   uniqueLabels.forEach((label, index) => {
-    labelMap[index] = label; // Changed to map index -> label for Roboflow format
+    labelMap[index] = label;
   });
 
   // Convert each detection to YOLO format
   const annotations = detections.map(detection => {
-    const [y1, x1, y2, x2] = detection.bbox;
+    // Get the bbox coordinates
+    let [y1, x1, y2, x2] = detection.bbox;
 
-    // Calculate normalized center points and dimensions
-    // Note: bbox coordinates are already normalized (0-1) from the detection process
+    // Clamp coordinates to ensure they're within 0-1 range
+    x1 = clamp(x1, 0, 1);
+    x2 = clamp(x2, 0, 1);
+    y1 = clamp(y1, 0, 1);
+    y2 = clamp(y2, 0, 1);
+
+    // Calculate center points and dimensions
+    const x_center = (x1 + x2) / 2;
+    const y_center = (y1 + y2) / 2;
     const width = Math.abs(x2 - x1);
     const height = Math.abs(y2 - y1);
-    const x_center = x1 + (width / 2);
-    const y_center = y1 + (height / 2);
 
     // Get class ID from label map
     const class_id = Object.entries(labelMap).find(([_, label]) => label === detection.class)[0];
 
     // Return YOLO format string with 6 decimal precision
+    // YOLO format is: <class_id> <x_center> <y_center> <width> <height>
     return `${class_id} ${x_center.toFixed(6)} ${y_center.toFixed(6)} ${width.toFixed(6)} ${height.toFixed(6)}`;
   }).join('\n');
 
