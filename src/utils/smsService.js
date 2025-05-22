@@ -1,5 +1,8 @@
 import { calculateDistance } from './locationUtils';
 
+// Get the current environment
+const isDevelopment = import.meta.env.DEV;
+
 /**
  * Send SMS using Semaphore API
  * @param {string} phoneNumber - Recipient's phone number
@@ -10,8 +13,13 @@ export const sendSMS = async (phoneNumber, message) => {
   const SEMAPHORE_API_KEY = import.meta.env.VITE_SEMAPHORE_API_KEY;
   const SENDER_NAME = import.meta.env.VITE_SEMAPHORE_SENDER_NAME || 'FARMAPP';
 
+  // Use different endpoints for development and production
+  const endpoint = isDevelopment
+    ? '/api/semaphore/messages'
+    : 'https://api.semaphore.co/api/v4/messages';
+
   try {
-    const response = await fetch('/api/semaphore/messages', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -25,11 +33,19 @@ export const sendSMS = async (phoneNumber, message) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to send SMS');
+      const errorText = await response.text();
+      let errorMessage;
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || 'Failed to send SMS';
+      } catch (e) {
+        errorMessage = 'Failed to send SMS: ' + errorText;
+      }
+      throw new Error(errorMessage);
     }
 
-    return await response.json();
+    const responseText = await response.text();
+    return responseText ? JSON.parse(responseText) : null;
   } catch (error) {
     console.error('SMS sending failed:', error);
     throw error;
