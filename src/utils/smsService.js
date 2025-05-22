@@ -1,7 +1,7 @@
 import { calculateDistance } from './locationUtils';
 
 // Get the current environment
-const isDevelopment = import.meta.env.DEV;
+// const isDevelopment = import.meta.env.DEV;
 
 /**
  * Send SMS using Semaphore API
@@ -14,9 +14,7 @@ export const sendSMS = async (phoneNumber, message) => {
   const SENDER_NAME = import.meta.env.VITE_SEMAPHORE_SENDER_NAME || 'FARMAPP';
 
   // Use different endpoints for development and production
-  const endpoint = isDevelopment
-    ? '/api/semaphore/messages'
-    : 'https://api.semaphore.co/api/v4/messages';
+  const endpoint = '/api/semaphore/messages'
 
   try {
     const response = await fetch(endpoint, {
