@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { db } from "../config/firebase";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import useUserStore from "../store/userStore";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { Sidebar } from "../components/Sidebar";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, WifiOff } from "lucide-react";
 
 const DetectionCard = ({ detection, formatDate, formatTime }) => (
   <div className="border border-green-100 rounded-lg p-4 hover:bg-green-50 transition-colors">
@@ -48,14 +49,26 @@ const CategoryHeader = ({ category }) => (
   </div>
 );
 
+const OfflineMessage = () => (
+  <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg border border-gray-200">
+    <WifiOff className="w-12 h-12 text-gray-400 mb-4" />
+    <h3 className="text-lg font-medium text-gray-900 mb-2">You're Offline</h3>
+    <p className="text-gray-500 text-center">
+      Detection history requires an internet connection. Please check your
+      connection and try again.
+    </p>
+  </div>
+);
+
 const DetectionHistoryPage = () => {
   const { user } = useUserStore();
   const [detections, setDetections] = useState([]);
   const [loading, setLoading] = useState(true);
+  const isOnline = useOnlineStatus();
 
   useEffect(() => {
     const fetchDetections = async () => {
-      if (!user) return;
+      if (!user || !isOnline) return;
 
       try {
         const detectionsRef = collection(db, "detections");
@@ -80,7 +93,7 @@ const DetectionHistoryPage = () => {
     };
 
     fetchDetections();
-  }, [user]);
+  }, [user, isOnline]);
 
   const formatDate = (timestamp) => {
     const date = timestamp.toDate();
@@ -172,7 +185,9 @@ const DetectionHistoryPage = () => {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-6">
-          {loading ? (
+          {!isOnline ? (
+            <OfflineMessage />
+          ) : loading ? (
             <div className="flex justify-center items-center h-48">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
             </div>

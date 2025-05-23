@@ -8,15 +8,24 @@ import {
   Download,
   Upload,
   AlertCircle,
+  WifiOff,
 } from "lucide-react";
 import { db } from "../config/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import useUserStore from "../store/userStore";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useCanvas } from "../hooks/useCanvas";
 import { useRoboflow } from "../hooks/useRoboflow";
 import preventionTips from "../utils/data/prevention.json";
 import { Sidebar } from "../components/Sidebar";
 import { DetectionNotifier } from "../components/DetectionNotifier";
+
+const OfflineMessage = ({ message }) => (
+  <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center text-gray-800">
+    <WifiOff className="h-5 w-5 mr-2 text-gray-600" />
+    {message}
+  </div>
+);
 
 const ResultPage = () => {
   const location = useLocation();
@@ -27,6 +36,8 @@ const ResultPage = () => {
   const [expandedDetection, setExpandedDetection] = useState(null);
   const { user } = useUserStore();
   const { imageData, detections } = location.state || {};
+  const isOnline = useOnlineStatus();
+  const [savingError, setSavingError] = useState(null);
 
   // Initialize custom hooks
   const { drawDetections } = useCanvas({
@@ -58,8 +69,13 @@ const ResultPage = () => {
       drawDetections();
     }
 
-    // Save detections to Firestore
+    // Save detections to Firestore when online
     const saveDetections = async () => {
+      if (!isOnline) {
+        setSavingError("Unable to save detections while offline");
+        return;
+      }
+
       try {
         for (const detection of detections) {
           await addDoc(collection(db, "detections"), {
@@ -69,16 +85,23 @@ const ResultPage = () => {
             timestamp: serverTimestamp(),
           });
         }
+        setSavingError(null);
       } catch (error) {
         console.error("Error saving detections:", error);
+        setSavingError("Failed to save detections. Please try again later.");
       }
     };
 
-    saveDetections();
-  }, [imageData, detections, navigate, user, drawDetections]);
+    if (isOnline) {
+      saveDetections();
+    }
+  }, [imageData, detections, navigate, user, drawDetections, isOnline]);
 
   const handleSaveAnnotations = async () => {
     if (!imageData || !detections) return;
+    if (!isOnline) {
+      return; // Button will be disabled when offline
+    }
     await uploadToDataset(imageData, detections);
   };
 
@@ -96,11 +119,19 @@ const ResultPage = () => {
               <button
                 onClick={handleSaveAnnotations}
                 className={`flex items-center px-5 py-2.5 text-white rounded-lg transition-colors ${
-                  isUploading
-                    ? "bg-blue-400 cursor-not-allowed"
+                  !isOnline || isUploading
+                    ? "bg-gray-400 cursor-not-allowed"
                     : "bg-blue-600 hover:bg-blue-700"
                 }`}
-                disabled={!detections || detections.length === 0 || isUploading}
+                disabled={
+                  !detections ||
+                  detections.length === 0 ||
+                  isUploading ||
+                  !isOnline
+                }
+                title={
+                  !isOnline ? "This feature requires internet connection" : ""
+                }
               >
                 {isUploading ? (
                   <>
@@ -124,7 +155,16 @@ const ResultPage = () => {
             </div>
           </div>
 
-          {/* Upload Status Messages */}
+          {/* Status Messages */}
+          {!isOnline && (
+            <OfflineMessage message="You're currently offline. Some features may be limited." />
+          )}
+          {savingError && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-800">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              {savingError}
+            </div>
+          )}
           {uploadSuccess && (
             <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center text-green-800">
               <Check className="h-5 w-5 mr-2" />

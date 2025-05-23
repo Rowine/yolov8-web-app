@@ -1,14 +1,19 @@
 import { useNotifyNearbyUsers } from "../hooks/useNotifyNearbyUsers";
 import { useState } from "react";
 import useUserStore from "../store/userStore";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
+import { WifiOff } from "lucide-react";
 
 export const DetectionNotifier = ({ detectedIssues, currentLocation }) => {
   const { user } = useUserStore();
   const { notifyUsers, isNotifying, error } = useNotifyNearbyUsers(user.uid);
   const [notificationSent, setNotificationSent] = useState(false);
   const [notifiedCount, setNotifiedCount] = useState(0);
+  const isOnline = useOnlineStatus();
 
   const handleNotifyUsers = async () => {
+    if (!isOnline) return;
+
     try {
       const count = await notifyUsers(currentLocation, detectedIssues);
       setNotifiedCount(count);
@@ -28,6 +33,13 @@ export const DetectionNotifier = ({ detectedIssues, currentLocation }) => {
           {detectedIssues.length} issue(s) detected in your area
         </p>
 
+        {!isOnline && (
+          <div className="flex items-center text-sm text-gray-500">
+            <WifiOff className="w-4 h-4 mr-2" />
+            Notifications unavailable while offline
+          </div>
+        )}
+
         {error && <p className="text-sm text-red-600">Error: {error}</p>}
 
         {notificationSent ? (
@@ -37,15 +49,16 @@ export const DetectionNotifier = ({ detectedIssues, currentLocation }) => {
         ) : (
           <button
             onClick={handleNotifyUsers}
-            disabled={isNotifying}
+            disabled={isNotifying || !isOnline}
             className={`
               w-full px-4 py-2 text-sm font-medium text-white rounded-md
               ${
-                isNotifying
-                  ? "bg-blue-400 cursor-not-allowed"
+                isNotifying || !isOnline
+                  ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700"
               }
             `}
+            title={!isOnline ? "This feature requires internet connection" : ""}
           >
             {isNotifying ? "Notifying..." : "Notify Nearby Farmers"}
           </button>

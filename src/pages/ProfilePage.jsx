@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import useUserStore from "../store/userStore";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import {
   getAuth,
   updatePassword,
@@ -17,8 +18,16 @@ import {
   User,
   Mail,
   Phone,
+  WifiOff,
 } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
+
+const OfflineMessage = () => (
+  <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center text-gray-800">
+    <WifiOff className="h-5 w-5 mr-2 text-gray-600" />
+    You're currently offline. Some features are disabled until you reconnect.
+  </div>
+);
 
 const LocationMarker = ({ onSelect }) => {
   useMapEvents({
@@ -40,9 +49,12 @@ const ProfilePage = () => {
   const [marker, setMarker] = useState(user?.farmLocation || null);
   const auth = getAuth();
   const db = getFirestore();
+  const isOnline = useOnlineStatus();
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
+    if (!isOnline) return;
+
     setError("");
     setSuccess("");
 
@@ -73,6 +85,8 @@ const ProfilePage = () => {
   };
 
   const handleLocationUpdate = async () => {
+    if (!isOnline) return;
+
     if (!marker) {
       setError("Please select a location on the map");
       return;
@@ -98,6 +112,8 @@ const ProfilePage = () => {
       <div className="flex-1 p-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">My Profile</h1>
+
+          {!isOnline && <OfflineMessage />}
 
           {/* User Information */}
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -126,7 +142,19 @@ const ProfilePage = () => {
           </div>
 
           {/* Change Password */}
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div
+            className={`bg-white rounded-xl shadow-sm p-6 mb-6 relative ${
+              !isOnline ? "opacity-60 pointer-events-none" : ""
+            }`}
+          >
+            {!isOnline && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-50/50 rounded-xl">
+                <div className="flex items-center text-gray-500">
+                  <WifiOff className="w-5 h-5 mr-2" />
+                  Available when online
+                </div>
+              </div>
+            )}
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Change Password
             </h2>
@@ -141,11 +169,13 @@ const ProfilePage = () => {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    disabled={!isOnline}
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2"
+                    disabled={!isOnline}
                   >
                     {showCurrentPassword ? (
                       <EyeOff className="w-5 h-5 text-gray-400" />
@@ -163,11 +193,13 @@ const ProfilePage = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    disabled={!isOnline}
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2"
+                    disabled={!isOnline}
                   >
                     {showNewPassword ? (
                       <EyeOff className="w-5 h-5 text-gray-400" />
@@ -179,7 +211,12 @@ const ProfilePage = () => {
               </div>
               <button
                 type="submit"
-                className="flex items-center justify-center w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                disabled={!isOnline}
+                className={`flex items-center justify-center w-full px-4 py-2 rounded-lg transition-colors ${
+                  !isOnline
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                }`}
               >
                 <Lock className="w-5 h-5 mr-2" />
                 Update Password
@@ -188,7 +225,19 @@ const ProfilePage = () => {
           </div>
 
           {/* Farm Location */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div
+            className={`bg-white rounded-xl shadow-sm p-6 relative ${
+              !isOnline ? "opacity-60 pointer-events-none" : ""
+            }`}
+          >
+            {!isOnline && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-50/50 rounded-xl">
+                <div className="flex items-center text-gray-500">
+                  <WifiOff className="w-5 h-5 mr-2" />
+                  Available when online
+                </div>
+              </div>
+            )}
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Farm Location
             </h2>
@@ -205,13 +254,18 @@ const ProfilePage = () => {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution="© OpenStreetMap contributors"
                   />
-                  <LocationMarker onSelect={setMarker} />
+                  {isOnline && <LocationMarker onSelect={setMarker} />}
                   {marker && <Marker position={[marker.lat, marker.lng]} />}
                 </MapContainer>
               </div>
               <button
                 onClick={handleLocationUpdate}
-                className="flex items-center justify-center w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                disabled={!isOnline}
+                className={`flex items-center justify-center w-full px-4 py-2 rounded-lg transition-colors ${
+                  !isOnline
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                }`}
               >
                 <MapPin className="w-5 h-5 mr-2" />
                 Update Farm Location
