@@ -18,14 +18,19 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 // Store & Config
 import useUserStore from "./store/userStore";
 import { ROUTES } from "./config";
+import { useSyncOfflineData } from "./hooks/useSyncOfflineData";
 
 const App = () => {
   const { initialize } = useUserStore();
 
+  // Initialize user authentication
   useEffect(() => {
     const unsubscribe = initialize();
     return () => unsubscribe();
   }, [initialize]);
+
+  // Initialize offline data syncing
+  useSyncOfflineData();
 
   return (
     <Router>

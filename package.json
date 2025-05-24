@@ -28,6 +28,7 @@
   "dependencies": {
     "@tensorflow/tfjs": "^4.1.0",
     "firebase": "^11.7.1",
+    "idb": "^8.0.3",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.510.0",
     "normalize.css": "^8.0.1",

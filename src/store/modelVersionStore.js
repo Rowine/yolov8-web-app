@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { openDB } from 'idb';
 
 const FIREBASE_HOST = 'https://rice-pest-disease-detection.web.app';
 
@@ -53,14 +54,10 @@ const useModelVersionStore = create(
           // Update the current version
           set({ currentVersion: version });
 
-          // Clear the existing model from IndexedDB to force a fresh load
-          const db = await window.indexedDB.open('tensorflowjs', 1);
-          db.onsuccess = (event) => {
-            const database = event.target.result;
-            const transaction = database.transaction(['models_store'], 'readwrite');
-            const objectStore = transaction.objectStore('models_store');
-            objectStore.clear();
-          };
+          // Clear the existing model from IndexedDB using idb
+          const db = await openDB('tensorflowjs', 1);
+          await db.clear('models_store');
+          db.close();
 
           return true;
         } catch (error) {

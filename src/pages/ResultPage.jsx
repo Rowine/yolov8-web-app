@@ -19,6 +19,7 @@ import { useRoboflow } from "../hooks/useRoboflow";
 import preventionTips from "../utils/data/prevention.json";
 import { Sidebar } from "../components/Sidebar";
 import { DetectionNotifier } from "../components/DetectionNotifier";
+import { saveOfflineDetection } from "../store/offlineStore";
 
 const OfflineMessage = ({ message }) => (
   <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center text-gray-800">
@@ -69,21 +70,28 @@ const ResultPage = () => {
       drawDetections();
     }
 
-    // Save detections to Firestore when online
+    // Save detections to Firestore when online or IndexedDB when offline
     const saveDetections = async () => {
-      if (!isOnline) {
-        setSavingError("Unable to save detections while offline");
-        return;
-      }
-
       try {
         for (const detection of detections) {
-          await addDoc(collection(db, "detections"), {
+          const detectionData = {
             userId: user.uid,
             detectedClass: detection.class,
             confidence: detection.confidence,
-            timestamp: serverTimestamp(),
-          });
+            timestamp: new Date().toISOString(),
+          };
+
+          if (isOnline) {
+            await addDoc(collection(db, "detections"), {
+              ...detectionData,
+              timestamp: serverTimestamp(),
+            });
+          } else {
+            await saveOfflineDetection(detectionData);
+            setSavingError(
+              "Detections saved offline. They will sync when you're back online."
+            );
+          }
         }
         setSavingError(null);
       } catch (error) {
@@ -92,9 +100,7 @@ const ResultPage = () => {
       }
     };
 
-    if (isOnline) {
-      saveDetections();
-    }
+    saveDetections();
   }, [imageData, detections, navigate, user, drawDetections, isOnline]);
 
   const handleSaveAnnotations = async () => {
