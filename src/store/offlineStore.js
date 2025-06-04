@@ -1,30 +1,42 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'rice-detection-app';
-const DB_VERSION = 1;
-const STORE_NAME = 'offline-detections';
+const DB_VERSION = 2; // Increased version for new store
+const DETECTIONS_STORE = 'offline-detections';
+const NOTIFICATIONS_STORE = 'offline-notifications';
 
 export const initDB = async () => {
   const db = await openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      // Create a store of objects
-      const store = db.createObjectStore(STORE_NAME, {
-        // The 'id' property will be the key.
-        keyPath: 'id',
-        // If it isn't explicitly set, create a value by auto incrementing.
-        autoIncrement: true,
-      });
-      // Create an index on the 'timestamp' property
-      store.createIndex('timestamp', 'timestamp');
+    upgrade(db, oldVersion, newVersion) {
+      // Create detections store if it doesn't exist
+      if (!db.objectStoreNames.contains(DETECTIONS_STORE)) {
+        const detectionsStore = db.createObjectStore(DETECTIONS_STORE, {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        detectionsStore.createIndex('timestamp', 'timestamp');
+      }
+
+      // Create notifications store if it doesn't exist
+      if (!db.objectStoreNames.contains(NOTIFICATIONS_STORE)) {
+        const notificationsStore = db.createObjectStore(NOTIFICATIONS_STORE, {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        notificationsStore.createIndex('timestamp', 'timestamp');
+        // Add index for recipient phone number
+        notificationsStore.createIndex('phoneNumber', 'phoneNumber');
+      }
     },
   });
   return db;
 };
 
+// Detection related functions
 export const saveOfflineDetection = async (detection) => {
   const db = await initDB();
   try {
-    await db.add(STORE_NAME, {
+    await db.add(DETECTIONS_STORE, {
       ...detection,
       timestamp: new Date().toISOString(),
       synced: false,
@@ -40,7 +52,7 @@ export const saveOfflineDetection = async (detection) => {
 export const getUnsyncedDetections = async () => {
   const db = await initDB();
   try {
-    return await db.getAllFromIndex(STORE_NAME, 'timestamp');
+    return await db.getAllFromIndex(DETECTIONS_STORE, 'timestamp');
   } catch (error) {
     console.error('Error getting unsynced detections:', error);
     throw error;
@@ -52,7 +64,7 @@ export const getUnsyncedDetections = async () => {
 export const markDetectionAsSynced = async (id) => {
   const db = await initDB();
   try {
-    await db.put(STORE_NAME, { id, synced: true });
+    await db.put(DETECTIONS_STORE, { id, synced: true });
   } catch (error) {
     console.error('Error marking detection as synced:', error);
     throw error;
@@ -64,9 +76,79 @@ export const markDetectionAsSynced = async (id) => {
 export const deleteDetection = async (id) => {
   const db = await initDB();
   try {
-    await db.delete(STORE_NAME, id);
+    await db.delete(DETECTIONS_STORE, id);
   } catch (error) {
     console.error('Error deleting detection:', error);
+    throw error;
+  } finally {
+    db.close();
+  }
+};
+
+// Notification related functions
+export const saveOfflineNotification = async ({ currentLocation, detectedIssues, nearbyUsers, currentUserId }) => {
+  const db = await initDB();
+  try {
+    // Save a notification entry for each nearby user
+    for (const user of nearbyUsers) {
+      if (user.uid === currentUserId || !user.phone) continue;
+
+      await db.add(NOTIFICATIONS_STORE, {
+        currentLocation,
+        detectedIssues,
+        recipientId: user.uid,
+        phoneNumber: user.phone,
+        recipientLocation: user.farmLocation,
+        timestamp: new Date().toISOString(),
+        synced: false,
+      });
+    }
+  } catch (error) {
+    console.error('Error saving offline notification:', error);
+    throw error;
+  } finally {
+    db.close();
+  }
+};
+
+export const getUnsyncedNotifications = async () => {
+  const db = await initDB();
+  try {
+    const notifications = await db.getAllFromIndex(NOTIFICATIONS_STORE, 'timestamp');
+    // Filter out notifications older than today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return notifications.filter(notification => {
+      const notificationDate = new Date(notification.timestamp);
+      return notificationDate >= today;
+    });
+  } catch (error) {
+    console.error('Error getting unsynced notifications:', error);
+    throw error;
+  } finally {
+    db.close();
+  }
+};
+
+export const markNotificationAsSynced = async (id) => {
+  const db = await initDB();
+  try {
+    await db.put(NOTIFICATIONS_STORE, { id, synced: true });
+  } catch (error) {
+    console.error('Error marking notification as synced:', error);
+    throw error;
+  } finally {
+    db.close();
+  }
+};
+
+export const deleteNotification = async (id) => {
+  const db = await initDB();
+  try {
+    await db.delete(NOTIFICATIONS_STORE, id);
+  } catch (error) {
+    console.error('Error deleting notification:', error);
     throw error;
   } finally {
     db.close();

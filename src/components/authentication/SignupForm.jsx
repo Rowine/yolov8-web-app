@@ -63,34 +63,37 @@ export const SignupForm = () => {
   };
 
   return (
-    <main className="min-h-screen bg-green-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-sm p-8">
-        <div className="mb-6">
+    <main className="h-screen bg-green-50 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md [@media(max-height:400px)]:max-w-3xl bg-white rounded-xl shadow-sm p-4">
+        <div className="mb-2">
           <Link
             to="/auth"
             className="flex items-center text-green-600 hover:text-green-700"
           >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            <span>Back to Home</span>
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            <span className="text-sm">Back to Home</span>
           </Link>
         </div>
 
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">
+        <div className="text-center mb-3">
+          <h1 className="text-xl font-bold text-gray-800">
             Create Your Account
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 text-sm mt-1">
             Join our community of rice farmers
           </p>
         </div>
 
         {error && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          <div className="mb-3 p-2 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 [@media(max-height:400px)]:grid-cols-2 gap-3"
+        >
           <InputField
             id="name"
             name="name"
@@ -99,7 +102,7 @@ export const SignupForm = () => {
             value={formData.name}
             onChange={handleChange}
             placeholder="Your name"
-            icon={<User className="h-5 w-5 text-gray-400" />}
+            icon={<User className="h-4 w-4 text-gray-400" />}
           />
 
           <InputField
@@ -110,10 +113,10 @@ export const SignupForm = () => {
             value={formData.email}
             onChange={handleChange}
             placeholder="farmer@example.com"
-            icon={<Mail className="h-5 w-5 text-gray-400" />}
+            icon={<Mail className="h-4 w-4 text-gray-400" />}
           />
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <InputField
               id="phone"
               name="phone"
@@ -122,14 +125,14 @@ export const SignupForm = () => {
               value={formData.phone}
               onChange={handleChange}
               placeholder="Your phone number"
-              icon={<Phone className="h-5 w-5 text-gray-400" />}
+              icon={<Phone className="h-4 w-4 text-gray-400" />}
             />
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-gray-500">
               We'll send alerts about your crops to this number
             </p>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <InputField
               id="password"
               name="password"
@@ -138,7 +141,7 @@ export const SignupForm = () => {
               value={formData.password}
               onChange={handleChange}
               placeholder="Create a password"
-              icon={<Lock className="h-5 w-5 text-gray-400" />}
+              icon={<Lock className="h-4 w-4 text-gray-400" />}
               rightIcon={
                 <button
                   type="button"
@@ -146,33 +149,35 @@ export const SignupForm = () => {
                   className="focus:outline-none"
                 >
                   {formData.showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
+                    <EyeOff className="h-4 w-4 text-gray-400" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+                    <Eye className="h-4 w-4 text-gray-400" />
                   )}
                 </button>
               }
             />
-            <p className="text-sm text-gray-500">Use at least 8 characters</p>
+            <p className="text-xs text-gray-500">Use at least 8 characters</p>
           </div>
 
-          <button
-            type="submit"
-            className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg text-lg font-medium transition-colors"
-          >
-            Create Account
-          </button>
+          <div className="[@media(max-height:400px)]:col-span-2 space-y-2">
+            <button
+              type="submit"
+              className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg text-base font-medium transition-colors"
+            >
+              Create Account
+            </button>
 
-          <div className="text-center mt-4">
-            <p className="text-gray-600">
-              Already have an account?{" "}
-              <Link
-                to="/login"
-                className="text-green-600 hover:text-green-700 font-medium"
-              >
-                Login
-              </Link>
-            </p>
+            <div className="text-center">
+              <p className="text-gray-600 text-sm">
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="text-green-600 hover:text-green-700 font-medium"
+                >
+                  Login
+                </Link>
+              </p>
+            </div>
           </div>
         </form>
       </div>

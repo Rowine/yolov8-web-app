@@ -12,7 +12,7 @@ export const InputField = ({
 }) => {
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="block text-gray-700 text-lg">
+      <label htmlFor={id} className="block text-gray-700 text-sm">
         {label}
       </label>
       <div className="relative">
@@ -29,7 +29,7 @@ export const InputField = ({
           onChange={onChange}
           className={`block w-full ${icon ? "pl-10" : "pl-3"} ${
             rightIcon ? "pr-10" : "pr-3"
-          } py-3 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+          } py-2 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent ${
             error ? "border-red-300 focus:ring-red-500" : ""
           }`}
           placeholder={placeholder}

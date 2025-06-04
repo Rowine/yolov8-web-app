@@ -50,30 +50,30 @@ export const LoginForm = () => {
   };
 
   return (
-    <main className="min-h-screen bg-green-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-sm p-8">
-        <div className="mb-6">
+    <main className="h-screen bg-green-50 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-sm p-4">
+        <div className="mb-3">
           <Link
             to="/auth"
             className="flex items-center text-green-600 hover:text-green-700"
           >
-            <ArrowLeft className="h-5 w-5 mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-1" />
             <span>Back to Home</span>
           </Link>
         </div>
 
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">Welcome Back</h1>
-          <p className="text-gray-600 mt-2">Login to check your rice plants</p>
+        <div className="text-center mb-4">
+          <h1 className="text-xl font-bold text-gray-800">Welcome Back</h1>
+          <p className="text-gray-600 mt-1">Login to check your rice plants</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          <div className="mb-3 p-2 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <InputField
             id="email"
             name="email"
@@ -111,13 +111,13 @@ export const LoginForm = () => {
 
           <button
             type="submit"
-            className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg text-lg font-medium transition-colors"
+            className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg text-base font-medium transition-colors"
           >
             Login
           </button>
 
-          <div className="text-center mt-4">
-            <p className="text-gray-600">
+          <div className="text-center mt-2">
+            <p className="text-gray-600 text-sm">
               Don't have an account?{" "}
               <Link
                 to="/signup"

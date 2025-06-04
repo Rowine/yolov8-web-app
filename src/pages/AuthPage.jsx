@@ -18,7 +18,7 @@ const AuthButton = ({ to, variant = "primary", children }) => (
 
 const AuthPage = () => {
   return (
-    <main className="min-h-screen bg-green-50 flex flex-col items-center justify-center p-4">
+    <main className="h-screen bg-green-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-sm p-8 space-y-8">
         <div className="text-center">
           <div className="flex justify-center">
