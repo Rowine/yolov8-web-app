@@ -22,8 +22,8 @@ import { DetectionNotifier } from "../components/DetectionNotifier";
 import { saveOfflineDetection } from "../store/offlineStore";
 
 const OfflineMessage = ({ message }) => (
-  <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center text-gray-800">
-    <WifiOff className="h-5 w-5 mr-2 text-gray-600" />
+  <div className="mb-2 p-2 bg-gray-50 border border-gray-200 rounded-lg flex items-center text-gray-800 text-sm">
+    <WifiOff className="h-4 w-4 mr-2 text-gray-600" />
     {message}
   </div>
 );
@@ -112,53 +112,15 @@ const ResultPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="h-screen bg-gray-100 p-2">
       <Sidebar />
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-3">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-green-800">
+          <div className="mb-2">
+            <h2 className="text-lg font-bold text-green-800">
               Detection Results
             </h2>
-            <div className="flex gap-3">
-              <button
-                onClick={handleSaveAnnotations}
-                className={`flex items-center px-5 py-2.5 text-white rounded-lg transition-colors ${
-                  !isOnline || isUploading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
-                }`}
-                disabled={
-                  !detections ||
-                  detections.length === 0 ||
-                  isUploading ||
-                  !isOnline
-                }
-                title={
-                  !isOnline ? "This feature requires internet connection" : ""
-                }
-              >
-                {isUploading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-5 w-5" />
-                    Upload to Roboflow
-                  </>
-                )}
-              </button>
-              <Link
-                to="/"
-                className="flex items-center px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-              >
-                <ArrowLeft className="mr-2 h-5 w-5" />
-                Back to Camera
-              </Link>
-            </div>
           </div>
 
           {/* Status Messages */}
@@ -185,13 +147,13 @@ const ResultPage = () => {
           )}
 
           {/* Main content */}
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-2">
             {/* Image container */}
-            <div className="lg:w-2/3">
+            <div className="lg:w-2/3 flex flex-col gap-2">
               <div
                 ref={containerRef}
-                className="relative w-full border-2 border-dashed border-green-200 rounded-lg overflow-hidden"
-                style={{ height: "480px" }}
+                className="relative w-full border border-dashed border-green-200 rounded-lg overflow-hidden"
+                style={{ height: "360px" }}
               >
                 <img
                   ref={imageRef}
@@ -204,15 +166,46 @@ const ResultPage = () => {
                   className="absolute top-0 left-0 w-full h-full pointer-events-none"
                 />
               </div>
+              <div className="flex justify-center">
+                <button
+                  onClick={handleSaveAnnotations}
+                  className={`flex items-center px-4 py-2 text-white rounded-lg transition-colors text-sm ${
+                    !isOnline || isUploading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
+                  disabled={
+                    !detections ||
+                    detections.length === 0 ||
+                    isUploading ||
+                    !isOnline
+                  }
+                  title={
+                    !isOnline ? "This feature requires internet connection" : ""
+                  }
+                >
+                  {isUploading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload to Roboflow
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Detections container */}
             <div className="lg:w-1/3">
-              <div className="bg-green-50 rounded-lg p-4 h-full border border-green-100">
-                <h3 className="text-lg font-semibold mb-3 text-green-800">
+              <div className="bg-green-50 rounded-lg p-2 h-full border border-green-100 flex flex-col">
+                <h3 className="text-base font-semibold mb-2 text-green-800">
                   Detected Diseases:
                 </h3>
-                <div className="space-y-3 max-h-[432px] overflow-y-auto pr-1">
+                <div className="space-y-2 flex-1 overflow-y-auto pr-1">
                   {!detections || detections.length === 0 ? (
                     <div className="bg-white rounded-lg shadow-sm p-6 text-center border border-green-100">
                       <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
@@ -290,6 +283,13 @@ const ResultPage = () => {
                     ))
                   )}
                 </div>
+                <Link
+                  to="/"
+                  className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm mt-2 justify-center"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Camera
+                </Link>
               </div>
             </div>
           </div>
