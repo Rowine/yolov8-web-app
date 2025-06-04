@@ -64,7 +64,7 @@ export const SignupForm = () => {
 
   return (
     <main className="h-screen bg-green-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md [@media(max-height:400px)]:max-w-3xl bg-white rounded-xl shadow-sm p-4">
+      <div className="w-full max-w-md [@media(max-height:500px)]:max-w-3xl bg-white rounded-xl shadow-sm p-4">
         <div className="mb-2">
           <Link
             to="/auth"
@@ -92,7 +92,7 @@ export const SignupForm = () => {
 
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 [@media(max-height:400px)]:grid-cols-2 gap-3"
+          className="grid grid-cols-1 [@media(max-height:500px)]:grid-cols-2 gap-3"
         >
           <InputField
             id="name"
@@ -159,7 +159,7 @@ export const SignupForm = () => {
             <p className="text-xs text-gray-500">Use at least 8 characters</p>
           </div>
 
-          <div className="[@media(max-height:400px)]:col-span-2 space-y-2">
+          <div className="[@media(max-height:500px)]:col-span-2 space-y-2">
             <button
               type="submit"
               className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg text-base font-medium transition-colors"
