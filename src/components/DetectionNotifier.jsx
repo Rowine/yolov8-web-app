@@ -5,7 +5,7 @@ import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { saveOfflineNotification } from "../store/offlineStore";
 import { notifyNearbyUsers } from "../utils/smsService";
 import { findNearbyUsers } from "../utils/locationUtils";
-import { WifiOff } from "lucide-react";
+import { WifiOff, X } from "lucide-react";
 import useUserStore from "../store/userStore";
 
 const NOTIFICATION_RADIUS_KM = 10; // Configurable radius for notifications
@@ -18,6 +18,7 @@ export const DetectionNotifier = ({ detectedIssues, currentLocation }) => {
   const [notifiedCount, setNotifiedCount] = useState(0);
   const [nearbyUsers, setNearbyUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isVisible, setIsVisible] = useState(true);
 
   // Find nearby users when detection occurs
   useEffect(() => {
@@ -87,10 +88,17 @@ export const DetectionNotifier = ({ detectedIssues, currentLocation }) => {
     }
   };
 
-  if (!detectedIssues?.length) return null;
+  if (!detectedIssues?.length || !isVisible) return null;
 
   return (
     <div className="fixed bottom-4 right-4 p-4 bg-white rounded-lg shadow-lg border border-gray-200">
+      <button
+        onClick={() => setIsVisible(false)}
+        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 transition-colors"
+        aria-label="Close notification"
+      >
+        <X className="w-5 h-5" />
+      </button>
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-gray-900">Detection Alert</h3>
         <p className="text-sm text-gray-600">
