@@ -36,6 +36,25 @@ export const useCanvas = ({ canvasRef, imageRef, detections }) => {
     canvas.width = rect.width;
     canvas.height = rect.height;
 
+    // Calculate the actual displayed image dimensions within the container
+    const imageAspectRatio = image.naturalWidth / image.naturalHeight;
+    const containerAspectRatio = rect.width / rect.height;
+
+    let displayedWidth = rect.width;
+    let displayedHeight = rect.height;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (containerAspectRatio > imageAspectRatio) {
+      // Container is wider than image
+      displayedWidth = rect.height * imageAspectRatio;
+      offsetX = (rect.width - displayedWidth) / 2;
+    } else {
+      // Container is taller than image
+      displayedHeight = rect.width / imageAspectRatio;
+      offsetY = (rect.height - displayedHeight) / 2;
+    }
+
     // Extract detection data
     const boxes_data = [];
     const scores_data = [];
@@ -44,10 +63,10 @@ export const useCanvas = ({ canvasRef, imageRef, detections }) => {
     detections.forEach((det) => {
       const [y1, x1, y2, x2] = det.bbox;
       const scaledBox = [
-        y1 * rect.height,
-        x1 * rect.width,
-        y2 * rect.height,
-        x2 * rect.width,
+        y1 * displayedHeight + offsetY,
+        x1 * displayedWidth + offsetX,
+        y2 * displayedHeight + offsetY,
+        x2 * displayedWidth + offsetX,
       ];
       boxes_data.push(...scaledBox);
       scores_data.push(det.confidence);
@@ -62,7 +81,13 @@ export const useCanvas = ({ canvasRef, imageRef, detections }) => {
       boxes: boxes_data,
       scores: scores_data,
       classes: classes_data,
-      detections
+      detections,
+      displayDimensions: {
+        width: displayedWidth,
+        height: displayedHeight,
+        offsetX,
+        offsetY
+      }
     });
 
     // Draw boxes

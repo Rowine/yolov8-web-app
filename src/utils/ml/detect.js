@@ -54,16 +54,29 @@ export const detect = async (source, model) => {
   const transRes = res.transpose([0, 2, 1]);
 
   const boxes = tf.tidy(() => {
+    // YOLOv8 outputs [x_center, y_center, width, height]
+    const x_center = transRes.slice([0, 0, 0], [-1, -1, 1]);
+    const y_center = transRes.slice([0, 0, 1], [-1, -1, 1]);
     const w = transRes.slice([0, 0, 2], [-1, -1, 1]);
     const h = transRes.slice([0, 0, 3], [-1, -1, 1]);
-    const x1 = tf.sub(transRes.slice([0, 0, 0], [-1, -1, 1]), tf.div(w, 2));
-    const y1 = tf.sub(transRes.slice([0, 0, 1], [-1, -1, 1]), tf.div(h, 2));
+
+    // Add a small vertical offset (adjust this value as needed)
+    const yOffset = tf.scalar(0.50); // 35% of the height offset
+    const y_center_adjusted = tf.add(y_center, tf.mul(h, yOffset));
+
+    // Calculate corners from center coordinates
+    const x1 = tf.sub(x_center, tf.div(w, 2));
+    const y1 = tf.sub(y_center_adjusted, tf.div(h, 2));
+    const x2 = tf.add(x_center, tf.div(w, 2));
+    const y2 = tf.add(y_center_adjusted, tf.div(h, 2));
+
+    // Return in [y1, x1, y2, x2] format as expected by tf.image.nonMaxSuppressionAsync
     return tf.concat(
       [
         y1,
         x1,
-        tf.add(y1, h),
-        tf.add(x1, w),
+        y2,
+        x2,
       ],
       2
     ).squeeze();

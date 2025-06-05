@@ -37,20 +37,40 @@ export const useDetection = (model) => {
     try {
       const rawDetections = await detect(imageElement, model);
 
+      // Calculate the padding ratios
+      const maxSize = Math.max(imageElement.width, imageElement.height);
+      const xPadding = (maxSize - imageElement.width) / 2;
+      const yPadding = (maxSize - imageElement.height) / 2;
+      const xScale = maxSize / imageElement.width;
+      const yScale = maxSize / imageElement.height;
+
       // Process detections to normalize coordinates and ensure correct class mapping
       const processedDetections = rawDetections.map((det) => {
         // Get the correct class label
         const classLabel = getClassLabel(det.classIndex);
 
+        // Unpad and unnormalize the coordinates
+        const [y1, x1, y2, x2] = det.bbox;
+        const unpadded = [
+          (y1 - yPadding) / yScale,
+          (x1 - xPadding) / xScale,
+          (y2 - yPadding) / yScale,
+          (x2 - xPadding) / xScale
+        ];
+
+        // Normalize to 0-1 range
+        const normalized = [
+          unpadded[0] / imageElement.height,
+          unpadded[1] / imageElement.width,
+          unpadded[2] / imageElement.height,
+          unpadded[3] / imageElement.width
+        ];
+
         return {
           class: classLabel,
           classIndex: det.classIndex,
           confidence: det.confidence,
-          bbox: det.bbox.map((coord, idx) =>
-            idx % 2 === 0
-              ? coord / imageElement.height
-              : coord / imageElement.width
-          ),
+          bbox: normalized
         };
       });
 
