@@ -20,6 +20,7 @@ import preventionTips from "../utils/data/prevention.json";
 import { Sidebar } from "../components/Sidebar";
 import { DetectionNotifier } from "../components/DetectionNotifier";
 import { saveOfflineDetection } from "../store/offlineStore";
+import { MODEL_CONFIG } from "../config/constants";
 
 const OfflineMessage = ({ message }) => (
   <div className="mb-2 p-2 bg-gray-50 border border-gray-200 rounded-lg flex items-center text-gray-800 text-sm">
@@ -241,7 +242,8 @@ const ResultPage = () => {
                               className={`px-2 py-1 rounded-full text-xs font-medium ${
                                 detection.confidence > 0.9
                                   ? "bg-red-100 text-red-800"
-                                  : detection.confidence > 0.7
+                                  : detection.confidence >
+                                    MODEL_CONFIG.confidenceThreshold
                                   ? "bg-yellow-100 text-yellow-800"
                                   : "bg-green-100 text-green-800"
                               }`}

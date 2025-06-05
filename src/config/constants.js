@@ -99,4 +99,14 @@ export const APP_CONFIG = {
     maxSize: 5 * 1024 * 1024, // 5MB
     acceptedTypes: ["image/jpeg", "image/png", "image/webp"],
   },
+};
+
+/**
+ * Model configuration
+ * @type {Object}
+ */
+export const MODEL_CONFIG = {
+  confidenceThreshold: 0.75, // 75% confidence threshold
+  nmsIoUThreshold: 0.45, // Non-maximum suppression IoU threshold
+  maxDetections: 500, // Maximum number of detections to return
 }; 

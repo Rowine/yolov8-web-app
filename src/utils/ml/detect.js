@@ -1,6 +1,7 @@
 import * as tf from "@tensorflow/tfjs";
 import { renderBoxes } from "../rendering/boxRenderer";
 import labels from "../data/labels.json";
+import { MODEL_CONFIG } from "../../config/constants";
 
 const numClass = labels.length;
 
@@ -87,7 +88,13 @@ export const detect = async (source, model) => {
     return [rawScores.max(1), rawScores.argMax(1)];
   });
 
-  const nms = await tf.image.nonMaxSuppressionAsync(boxes, scores, 500, 0.45, 0.5);
+  const nms = await tf.image.nonMaxSuppressionAsync(
+    boxes,
+    scores,
+    MODEL_CONFIG.maxDetections,
+    MODEL_CONFIG.nmsIoUThreshold,
+    MODEL_CONFIG.confidenceThreshold
+  );
 
   const boxes_data = boxes.gather(nms, 0).dataSync();
   const scores_data = scores.gather(nms, 0).dataSync();

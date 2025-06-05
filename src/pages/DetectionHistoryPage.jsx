@@ -5,6 +5,7 @@ import useUserStore from "../store/userStore";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { Sidebar } from "../components/Sidebar";
 import { Calendar, Clock, WifiOff } from "lucide-react";
+import { MODEL_CONFIG } from "../config/constants";
 
 const DetectionCard = ({ detection, formatDate, formatTime }) => (
   <div className="border border-green-100 rounded-lg p-4 hover:bg-green-50 transition-colors">
@@ -28,7 +29,7 @@ const DetectionCard = ({ detection, formatDate, formatTime }) => (
         className={`px-3 py-1 rounded-full text-sm font-medium ${
           detection.confidence > 0.9
             ? "bg-red-100 text-red-800"
-            : detection.confidence > 0.7
+            : detection.confidence > MODEL_CONFIG.confidenceThreshold
             ? "bg-yellow-100 text-yellow-800"
             : "bg-green-100 text-green-800"
         }`}
