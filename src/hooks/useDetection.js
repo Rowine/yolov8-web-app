@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { detect } from '../utils/ml/detect';
+import { classifyRiceLeaf } from '../utils/ml/classify';
 import labels from '../utils/data/labels.json';
 
 /**
@@ -35,6 +36,37 @@ export const useDetection = (model) => {
     setError(null);
 
     try {
+      // Step 1: Classify if the image contains a rice leaf
+      console.log('Classifying image...');
+      let classificationResult;
+
+      try {
+        classificationResult = await classifyRiceLeaf(imageElement);
+        console.log('Classification result:', classificationResult);
+      } catch (classificationError) {
+        console.warn('Classification failed, proceeding with detection anyway:', classificationError);
+        // If classification fails, assume it's a rice leaf and proceed
+        classificationResult = {
+          isRiceLeaf: true,
+          confidence: 0,
+          prediction: 'rice_leaf',
+          probabilities: { not_rice_leaf: 0, rice_leaf: 1 }
+        };
+      }
+
+      // If it's not a rice leaf, return early with classification info
+      if (!classificationResult.isRiceLeaf) {
+        console.log('Not a rice leaf detected, skipping disease/pest detection');
+        return {
+          isRiceLeaf: false,
+          classification: classificationResult,
+          detections: [],
+          message: 'This image does not appear to contain a rice leaf. Please capture an image of a rice leaf for disease and pest detection.'
+        };
+      }
+
+      // Step 2: If it's a rice leaf, proceed with disease/pest detection
+      console.log('Rice leaf detected, proceeding with disease/pest detection...');
       const rawDetections = await detect(imageElement, model);
 
       // Calculate the padding ratios
@@ -77,7 +109,14 @@ export const useDetection = (model) => {
       // Log detections for debugging
       console.log('Processed detections:', processedDetections);
 
-      return processedDetections;
+      return {
+        isRiceLeaf: true,
+        classification: classificationResult,
+        detections: processedDetections,
+        message: processedDetections.length > 0
+          ? `Detected ${processedDetections.length} disease(s)/pest(s) on the rice leaf.`
+          : 'Rice leaf detected, but no diseases or pests found.'
+      };
     } catch (err) {
       console.error('Detection error:', err);
       setError(err.message);

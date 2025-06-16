@@ -37,9 +37,15 @@ const ResultPage = () => {
   const containerRef = useRef(null);
   const [expandedDetection, setExpandedDetection] = useState(null);
   const { user } = useUserStore();
-  const { imageData, detections } = location.state || {};
+  const { imageData, detections: detectionResult } = location.state || {};
   const isOnline = useOnlineStatus();
   const [savingError, setSavingError] = useState(null);
+
+  // Extract detections from the new structure
+  const detections = detectionResult?.detections || [];
+  const isRiceLeaf = detectionResult?.isRiceLeaf;
+  const classification = detectionResult?.classification;
+  const message = detectionResult?.message;
 
   // Initialize custom hooks
   const { drawDetections } = useCanvas({
@@ -56,7 +62,7 @@ const ResultPage = () => {
   } = useRoboflow();
 
   useEffect(() => {
-    if (!imageData || !detections) {
+    if (!imageData || !detectionResult) {
       navigate("/");
       return;
     }
@@ -122,6 +128,54 @@ const ResultPage = () => {
             <h2 className="text-lg font-bold text-green-800">
               Detection Results
             </h2>
+            {/* Classification Result */}
+            {classification && (
+              <div
+                className={`mt-2 p-3 rounded-lg border ${
+                  isRiceLeaf
+                    ? "bg-green-50 border-green-200"
+                    : "bg-yellow-50 border-yellow-200"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div
+                      className={`w-3 h-3 rounded-full mr-2 ${
+                        isRiceLeaf ? "bg-green-500" : "bg-yellow-500"
+                      }`}
+                    ></div>
+                    <span
+                      className={`font-medium ${
+                        isRiceLeaf ? "text-green-800" : "text-yellow-800"
+                      }`}
+                    >
+                      Classification:{" "}
+                      {classification.prediction
+                        .replace("_", " ")
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-sm px-2 py-1 rounded-full ${
+                      isRiceLeaf
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {(classification.confidence * 100).toFixed(1)}% confidence
+                  </span>
+                </div>
+                {message && (
+                  <p
+                    className={`mt-2 text-sm ${
+                      isRiceLeaf ? "text-green-700" : "text-yellow-700"
+                    }`}
+                  >
+                    {message}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Status Messages */}
@@ -204,10 +258,34 @@ const ResultPage = () => {
             <div className="lg:w-1/3">
               <div className="bg-green-50 rounded-lg p-2 h-full border border-green-100 flex flex-col">
                 <h3 className="text-base font-semibold mb-2 text-green-800">
-                  Detected Diseases:
+                  {isRiceLeaf === false
+                    ? "Analysis Result:"
+                    : "Detected Diseases:"}
                 </h3>
                 <div className="space-y-2 flex-1 overflow-y-auto pr-1">
-                  {!detections || detections.length === 0 ? (
+                  {isRiceLeaf === false ? (
+                    <div className="bg-white rounded-lg shadow-sm p-6 text-center border border-yellow-100">
+                      <div className="mx-auto w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mb-3">
+                        <AlertCircle className="h-6 w-6 text-yellow-600" />
+                      </div>
+                      <h4 className="text-lg font-medium text-yellow-800 mb-2">
+                        Not a Rice Leaf
+                      </h4>
+                      <p className="text-gray-600 text-sm">
+                        {message ||
+                          "This image does not appear to contain a rice leaf. Please capture an image of a rice leaf for disease and pest detection."}
+                      </p>
+                      <div className="mt-4 text-xs text-gray-500">
+                        <p>
+                          Classification confidence:{" "}
+                          {classification
+                            ? (classification.confidence * 100).toFixed(1)
+                            : "N/A"}
+                          %
+                        </p>
+                      </div>
+                    </div>
+                  ) : !detections || detections.length === 0 ? (
                     <div className="bg-white rounded-lg shadow-sm p-6 text-center border border-green-100">
                       <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
                         <Check className="h-6 w-6 text-green-600" />
@@ -219,6 +297,15 @@ const ResultPage = () => {
                         Your rice plant appears to be healthy. Continue with
                         regular maintenance and monitoring.
                       </p>
+                      <div className="mt-4 text-xs text-gray-500">
+                        <p>
+                          Classification confidence:{" "}
+                          {classification
+                            ? (classification.confidence * 100).toFixed(1)
+                            : "N/A"}
+                          %
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     detections.map((detection, index) => (

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import * as tf from "@tensorflow/tfjs";
 import useModelVersionStore from './modelVersionStore';
+import { loadClassificationModel } from '../utils/ml/classify';
 
 const FIREBASE_HOST = 'https://rice-pest-disease-detection.web.app';
 
@@ -8,6 +9,7 @@ const useModelStore = create((set, get) => ({
   loading: true,
   progress: 0,
   net: null,
+  classificationModel: null,
   inputShape: [1, 0, 0, 3],
   modelName: "v0",
   error: null,
@@ -21,48 +23,66 @@ const useModelStore = create((set, get) => ({
     set({ loading: true, error: null });
 
     try {
+      // Load detection model
       const currentVersion = useModelVersionStore.getState().currentVersion;
       const modelPath = `${FIREBASE_HOST}/models/${currentVersion}/model.json`;
 
+      console.log('Loading YOLOv8 detection model...');
       const yolov8 = await tf.loadGraphModel(modelPath, {
         onProgress: (fractions) => {
-          set({ loading: true, progress: fractions });
+          // Update progress for detection model (0-80% of total progress)
+          set({ loading: true, progress: fractions * 0.8 });
         },
       });
 
-      // Warm up model
+      // Warm up detection model
       const dummyInput = tf.ones(yolov8.inputs[0].shape);
       const warmupResults = yolov8.execute(dummyInput);
+      tf.dispose([warmupResults, dummyInput]);
+
+      console.log('YOLOv8 detection model loaded successfully');
+
+      // Load classification model
+      console.log('Loading rice leaf classification model...');
+      set({ progress: 0.8 }); // 80% progress before classification model
+
+      const classificationModel = await loadClassificationModel();
+
+      console.log('Classification model loaded successfully');
 
       set({
         loading: false,
         progress: 1,
         net: yolov8,
+        classificationModel,
         inputShape: yolov8.inputs[0].shape,
         modelName: currentVersion,
         isInitialized: true,
       });
 
-      // Cleanup memory
-      tf.dispose([warmupResults, dummyInput]);
+      console.log('All models initialized successfully');
+
     } catch (error) {
-      console.error("Error initializing model:", error);
+      console.error("Error initializing models:", error);
       set({
         loading: false,
-        error: "Failed to load model",
+        error: "Failed to load models. Please check your internet connection and try again.",
         isInitialized: false,
       });
     }
   },
 
   resetModel: () => {
-    if (get().net) {
-      get().net.dispose();
+    const state = get();
+    if (state.net) {
+      state.net.dispose();
     }
+    // Note: Classification model disposal is handled in the classify.js module
     set({
       loading: true,
       progress: 0,
       net: null,
+      classificationModel: null,
       inputShape: [1, 0, 0, 3],
       error: null,
       isInitialized: false,

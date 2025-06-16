@@ -56,7 +56,12 @@ const HomePage = () => {
   if (loading) {
     return (
       <LoadingSpinner>
-        Loading model... {(progress * 100).toFixed(2)}%
+        Loading models... {(progress * 100).toFixed(0)}%
+        <div className="text-xs mt-1 text-gray-500">
+          {progress < 0.8
+            ? "Loading detection model..."
+            : "Loading classification model..."}
+        </div>
       </LoadingSpinner>
     );
   }
