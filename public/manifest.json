@@ -1,9 +1,9 @@
 {
-  "name": "YOLOv8 Tensorflow.js App",
-  "short_name": "YOLOv8 App",
-  "description": "YOLOv8 object detection using Tensorflow.js",
+  "name": "Rice Disease Prediction and Detection",
+  "short_name": "RDPD",
+  "description": "Rice Disease Prediction and Detection",
   "start_url": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "icons": [
