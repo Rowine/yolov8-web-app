@@ -11,7 +11,7 @@ export const SignupForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
+    phone: "+63",
     password: "",
     showPassword: false,
   });
@@ -20,7 +20,23 @@ export const SignupForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "phone") {
+      // Don't allow deletion of +63 prefix
+      if (!value.startsWith("+63")) {
+        return;
+      }
+
+      // Remove non-numeric characters except + and only from the part after +63
+      let cleanValue = "+63" + value.slice(3).replace(/[^\d]/g, "");
+
+      // Limit total length (Philippines mobile numbers: +63 + 10 digits = 13 chars)
+      if (cleanValue.length <= 13) {
+        setFormData((prev) => ({ ...prev, [name]: cleanValue }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -33,8 +49,55 @@ export const SignupForm = () => {
 
     const { email, password, phone, name } = formData;
 
-    if (!email || !password || !phone) {
+    // Basic required field validation
+    if (!email || !password || !phone || !name) {
       setError("Please fill in all required fields");
+      return;
+    }
+
+    // Name validation
+    if (name.trim().length < 2) {
+      setError("Name must be at least 2 characters long");
+      return;
+    }
+
+    if (name.trim().length > 50) {
+      setError("Name must be less than 50 characters");
+      return;
+    }
+
+    if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
+      setError("Name can only contain letters and spaces");
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email.trim())) {
+      setError(
+        "Please enter a valid email address (letters, numbers, dots, hyphens, and underscores only)"
+      );
+      return;
+    }
+
+    // Password validation
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+
+    if (!/(?=.*[a-z])/.test(password)) {
+      setError("Password must contain at least one lowercase letter");
+      return;
+    }
+
+    if (!/(?=.*[A-Z])/.test(password)) {
+      setError("Password must contain at least one uppercase letter");
+      return;
+    }
+
+    if (!/(?=.*\d)/.test(password)) {
+      setError("Password must contain at least one number");
       return;
     }
 
@@ -50,7 +113,7 @@ export const SignupForm = () => {
         uid: user.uid,
         name,
         email: user.email,
-        phone,
+        phone: phone.replace("+", ""), // Remove + sign for database storage
         createdAt: new Date(),
       });
 
@@ -124,11 +187,11 @@ export const SignupForm = () => {
               label="Phone Number"
               value={formData.phone}
               onChange={handleChange}
-              placeholder="Your phone number"
+              placeholder="+639123456789"
               icon={<Phone className="h-4 w-4 text-gray-400" />}
             />
             <p className="text-xs text-gray-500">
-              We'll send alerts about your crops to this number
+              We'll send alerts about your crops to this number.
             </p>
           </div>
 
@@ -156,7 +219,9 @@ export const SignupForm = () => {
                 </button>
               }
             />
-            <p className="text-xs text-gray-500">Use at least 8 characters</p>
+            <p className="text-xs text-gray-500">
+              At least 8 characters with uppercase, lowercase, and number
+            </p>
           </div>
 
           <div className="[@media(max-height:500px)]:col-span-2 space-y-2">
