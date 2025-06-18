@@ -9,6 +9,7 @@ import {
   Upload,
   AlertCircle,
   WifiOff,
+  Flag,
 } from "lucide-react";
 import { db } from "../config/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -16,9 +17,11 @@ import useUserStore from "../store/userStore";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useCanvas } from "../hooks/useCanvas";
 import { useRoboflow } from "../hooks/useRoboflow";
+import { useClassificationFeedback } from "../hooks/useClassificationFeedback";
 import preventionTips from "../utils/data/prevention.json";
 import { Sidebar } from "../components/Sidebar";
 import { DetectionNotifier } from "../components/DetectionNotifier";
+import ClassificationFeedback from "../components/ClassificationFeedback";
 import { saveOfflineDetection } from "../store/offlineStore";
 import { MODEL_CONFIG } from "../config/constants";
 
@@ -36,6 +39,7 @@ const ResultPage = () => {
   const imageRef = useRef(null);
   const containerRef = useRef(null);
   const [expandedDetection, setExpandedDetection] = useState(null);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const { user } = useUserStore();
   const { imageData, detections: detectionResult } = location.state || {};
   const isOnline = useOnlineStatus();
@@ -60,6 +64,13 @@ const ResultPage = () => {
     error: uploadError,
     isSuccess: uploadSuccess,
   } = useRoboflow();
+
+  const {
+    submitFeedback,
+    isSubmitting: isFeedbackSubmitting,
+    error: feedbackError,
+    isSuccess: feedbackSuccess,
+  } = useClassificationFeedback();
 
   useEffect(() => {
     if (!imageData || !detectionResult) {
@@ -118,6 +129,14 @@ const ResultPage = () => {
     await uploadToDataset(imageData, detections);
   };
 
+  const handleFeedbackSubmit = async (feedbackData) => {
+    const success = await submitFeedback(feedbackData);
+    if (success) {
+      setShowFeedbackModal(false);
+    }
+    return success;
+  };
+
   return (
     <div className="h-screen bg-gray-100 p-2">
       <Sidebar />
@@ -155,15 +174,27 @@ const ResultPage = () => {
                         .replace(/\b\w/g, (l) => l.toUpperCase())}
                     </span>
                   </div>
-                  <span
-                    className={`text-sm px-2 py-1 rounded-full ${
-                      isRiceLeaf
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {(classification.confidence * 100).toFixed(1)}% confidence
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-sm px-2 py-1 rounded-full ${
+                        isRiceLeaf
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {(classification.confidence * 100).toFixed(1)}% confidence
+                    </span>
+                    {isOnline && (
+                      <button
+                        onClick={() => setShowFeedbackModal(true)}
+                        className="text-sm px-2 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center gap-1 transition-colors"
+                        title="Report incorrect classification"
+                      >
+                        <Flag className="h-3 w-3" />
+                        Report
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {message && (
                   <p
@@ -198,6 +229,19 @@ const ResultPage = () => {
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-800">
               <AlertCircle className="h-5 w-5 mr-2" />
               {uploadError}
+            </div>
+          )}
+          {feedbackSuccess && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center text-green-800">
+              <Check className="h-5 w-5 mr-2" />
+              Classification feedback submitted successfully! Thank you for
+              helping improve our model.
+            </div>
+          )}
+          {feedbackError && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-800">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              {feedbackError}
             </div>
           )}
 
@@ -391,6 +435,17 @@ const ResultPage = () => {
         <DetectionNotifier
           detectedIssues={detections.map((d) => ({ name: d.class }))}
           currentLocation={user.farmLocation}
+        />
+      )}
+
+      {/* Classification Feedback Modal */}
+      {classification && (
+        <ClassificationFeedback
+          classification={classification}
+          imageData={imageData}
+          onFeedbackSubmit={handleFeedbackSubmit}
+          isVisible={showFeedbackModal}
+          onClose={() => setShowFeedbackModal(false)}
         />
       )}
     </div>

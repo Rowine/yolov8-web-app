@@ -16,6 +16,13 @@ export const REQUIRED_ENV_VARS = {
     "VITE_FIREBASE_MESSAGING_SENDER_ID",
     "VITE_FIREBASE_APP_ID",
   ],
+  // Roboflow Config (optional)
+  ROBOFLOW: [
+    "VITE_ROBOFLOW_API_KEY", // For detection project
+    "VITE_ROBOFLOW_PROJECT_ID", // For detection project
+    "VITE_ROBOFLOW_CLASSIFICATION_API_KEY", // For classification feedback project
+    "VITE_ROBOFLOW_CLASSIFICATION_PROJECT_ID", // For classification feedback project
+  ],
   // Add other service configs here
 };
 
@@ -49,5 +56,13 @@ export const ENV_CONFIG = {
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  },
+  roboflow: {
+    // Detection project (existing)
+    apiKey: import.meta.env.VITE_ROBOFLOW_API_KEY,
+    projectId: import.meta.env.VITE_ROBOFLOW_PROJECT_ID,
+    // Classification feedback project (new)
+    classificationApiKey: import.meta.env.VITE_ROBOFLOW_CLASSIFICATION_API_KEY,
+    classificationProjectId: import.meta.env.VITE_ROBOFLOW_CLASSIFICATION_PROJECT_ID,
   },
 }; 
