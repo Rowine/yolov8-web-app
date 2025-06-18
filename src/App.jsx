@@ -19,9 +19,11 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import useUserStore from "./store/userStore";
 import { ROUTES } from "./config";
 import { useSyncOfflineData } from "./hooks/useSyncOfflineData";
+import { useFullscreen } from "./hooks/useFullscreen";
 
 const App = () => {
   const { initialize } = useUserStore();
+  const { enterFullscreen, isPWA, isSupported } = useFullscreen();
 
   // Initialize user authentication
   useEffect(() => {
@@ -31,6 +33,31 @@ const App = () => {
 
   // Initialize offline data syncing
   useSyncOfflineData();
+
+  // Initialize fullscreen mode for PWA
+  useEffect(() => {
+    const initializeFullscreen = async () => {
+      // Small delay to ensure DOM is ready
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Only auto-enter fullscreen if running as PWA and fullscreen is supported
+      if (isPWA && isSupported) {
+        try {
+          await enterFullscreen();
+          console.log("PWA launched in fullscreen mode");
+        } catch (error) {
+          console.warn("Could not enter fullscreen automatically:", error);
+        }
+      }
+
+      // For web browsers, add body class to help with styling
+      if (isPWA) {
+        document.body.classList.add("pwa-mode");
+      }
+    };
+
+    initializeFullscreen();
+  }, [isPWA, isSupported, enterFullscreen]);
 
   return (
     <Router>

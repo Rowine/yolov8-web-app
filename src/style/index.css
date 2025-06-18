@@ -1,5 +1,6 @@
 /* Leaflet default styling */
 @import "leaflet/dist/leaflet.css";
+@import "normalize.css";
 
 @tailwind base;
 @tailwind components;
@@ -66,5 +67,118 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Fullscreen and PWA specific styles */
+body.pwa-mode {
+  /* Remove any default margins/padding for PWA */
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Fullscreen container */
+:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Webkit fullscreen */
+:-webkit-full-screen {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Mozilla fullscreen */
+:-moz-full-screen {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Microsoft fullscreen */
+:-ms-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* PWA display mode styling */
+@media (display-mode: fullscreen) {
+  body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Hide browser UI elements that might still be visible */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Ensure root element takes full space */
+  #root {
+    min-height: 100vh;
+    width: 100vw;
+  }
+}
+
+@media (display-mode: standalone) {
+  body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100vh;
+    width: 100vw;
+  }
+}
+
+/* Prevent zoom on iOS Safari */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  font-size: 16px;
+}
+
+/* Safe area handling for devices with notches */
+@supports (padding: max(0px)) {
+  .safe-area-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .safe-area-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .safe-area-left {
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+
+  .safe-area-right {
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* Additional PWA optimizations */
+.pwa-container {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* Fix for iOS viewport height issues */
+@supports (-webkit-touch-callout: none) {
+  .pwa-container {
+    min-height: -webkit-fill-available;
   }
 }
