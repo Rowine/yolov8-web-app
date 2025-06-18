@@ -260,7 +260,7 @@ const ResultPage = () => {
                 <h3 className="text-base font-semibold mb-2 text-green-800">
                   {isRiceLeaf === false
                     ? "Analysis Result:"
-                    : "Detected Diseases:"}
+                    : "Detected Issues:"}
                 </h3>
                 <div className="space-y-2 flex-1 overflow-y-auto pr-1">
                   {isRiceLeaf === false ? (
@@ -291,11 +291,12 @@ const ResultPage = () => {
                         <Check className="h-6 w-6 text-green-600" />
                       </div>
                       <h4 className="text-lg font-medium text-green-800 mb-2">
-                        No Diseases Detected
+                        No Issues Detected
                       </h4>
                       <p className="text-gray-600 text-sm">
-                        Your rice plant appears to be healthy. Continue with
-                        regular maintenance and monitoring.
+                        Your rice plant appears to be healthy with no diseases
+                        or pests detected. Continue with regular maintenance and
+                        monitoring.
                       </p>
                       <div className="mt-4 text-xs text-gray-500">
                         <p>

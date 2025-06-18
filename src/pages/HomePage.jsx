@@ -84,10 +84,11 @@ const HomePage = () => {
             Rice Pest & Disease Detection
           </h1>
           <p className="text-sm text-gray-600">
-            Take a photo of your rice plant to detect diseases •{" "}
-            <span className="bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs font-medium">
-              {modelName}
-            </span>
+            Take a photo of your rice plant to detect diseases
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Detects: Bacterial Leaf Blight, Brown Planthopper, Rice Leaf Roller,
+            Rice Leafhopper, Rice Leaf Blast, Sheath Blight, Stem Borer, Tungro
           </p>
         </div>
 
