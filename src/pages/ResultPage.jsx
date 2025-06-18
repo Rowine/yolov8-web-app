@@ -18,10 +18,12 @@ import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useCanvas } from "../hooks/useCanvas";
 import { useRoboflow } from "../hooks/useRoboflow";
 import { useClassificationFeedback } from "../hooks/useClassificationFeedback";
+import { useDetectionFeedback } from "../hooks/useDetectionFeedback";
 import preventionTips from "../utils/data/prevention.json";
 import { Sidebar } from "../components/Sidebar";
 import { DetectionNotifier } from "../components/DetectionNotifier";
 import ClassificationFeedback from "../components/ClassificationFeedback";
+import AnnotationFeedback from "../components/AnnotationFeedback";
 import { saveOfflineDetection } from "../store/offlineStore";
 import { MODEL_CONFIG } from "../config/constants";
 
@@ -40,6 +42,7 @@ const ResultPage = () => {
   const containerRef = useRef(null);
   const [expandedDetection, setExpandedDetection] = useState(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showAnnotationModal, setShowAnnotationModal] = useState(false);
   const { user } = useUserStore();
   const { imageData, detections: detectionResult } = location.state || {};
   const isOnline = useOnlineStatus();
@@ -71,6 +74,13 @@ const ResultPage = () => {
     error: feedbackError,
     isSuccess: feedbackSuccess,
   } = useClassificationFeedback();
+
+  const {
+    submitFeedback: submitDetectionFeedback,
+    isSubmitting: isDetectionFeedbackSubmitting,
+    error: detectionFeedbackError,
+    isSuccess: detectionFeedbackSuccess,
+  } = useDetectionFeedback();
 
   useEffect(() => {
     if (!imageData || !detectionResult) {
@@ -133,6 +143,14 @@ const ResultPage = () => {
     const success = await submitFeedback(feedbackData);
     if (success) {
       setShowFeedbackModal(false);
+    }
+    return success;
+  };
+
+  const handleDetectionFeedbackSubmit = async (feedbackData) => {
+    const success = await submitDetectionFeedback(feedbackData);
+    if (success) {
+      setShowAnnotationModal(false);
     }
     return success;
   };
@@ -244,6 +262,19 @@ const ResultPage = () => {
               {feedbackError}
             </div>
           )}
+          {detectionFeedbackSuccess && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center text-green-800">
+              <Check className="h-5 w-5 mr-2" />
+              Detection annotations submitted successfully! Thank you for
+              helping improve our model.
+            </div>
+          )}
+          {detectionFeedbackError && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-800">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              {detectionFeedbackError}
+            </div>
+          )}
 
           {/* Main content */}
           <div className="flex flex-col lg:flex-row gap-2">
@@ -265,7 +296,7 @@ const ResultPage = () => {
                   className="absolute top-0 left-0 w-full h-full pointer-events-none"
                 />
               </div>
-              <div className="flex justify-center">
+              <div className="flex justify-center gap-2">
                 <button
                   onClick={handleSaveAnnotations}
                   className={`flex items-center px-4 py-2 text-white rounded-lg transition-colors text-sm ${
@@ -295,6 +326,21 @@ const ResultPage = () => {
                     </>
                   )}
                 </button>
+                {isRiceLeaf && (
+                  <button
+                    onClick={() => setShowAnnotationModal(true)}
+                    className="flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors text-sm"
+                    disabled={!isOnline}
+                    title={
+                      !isOnline
+                        ? "This feature requires internet connection"
+                        : "Correct detection results by annotating missed or incorrect detections"
+                    }
+                  >
+                    <Flag className="mr-2 h-4 w-4" />
+                    Correct Detections
+                  </button>
+                )}
               </div>
             </div>
 
@@ -446,6 +492,17 @@ const ResultPage = () => {
           onFeedbackSubmit={handleFeedbackSubmit}
           isVisible={showFeedbackModal}
           onClose={() => setShowFeedbackModal(false)}
+        />
+      )}
+
+      {/* Detection Annotation Feedback Modal */}
+      {isRiceLeaf && (
+        <AnnotationFeedback
+          detections={detections}
+          imageData={imageData}
+          onFeedbackSubmit={handleDetectionFeedbackSubmit}
+          isVisible={showAnnotationModal}
+          onClose={() => setShowAnnotationModal(false)}
         />
       )}
     </div>
