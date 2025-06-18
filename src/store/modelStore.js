@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import * as tf from "@tensorflow/tfjs";
-import useModelVersionStore from './modelVersionStore';
 import { loadClassificationModel } from '../utils/ml/classify';
 
-const FIREBASE_HOST = 'https://rice-pest-disease-detection.web.app';
+// Removed FIREBASE_HOST since we're using local static files
+const MODEL_PATH = '/v0/model.json'; // Static path to your model
 
 const useModelStore = create((set, get) => ({
   loading: true,
@@ -23,12 +23,9 @@ const useModelStore = create((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      // Load detection model
-      const currentVersion = useModelVersionStore.getState().currentVersion;
-      const modelPath = `${FIREBASE_HOST}/models/${currentVersion}/model.json`;
-
+      // Load detection model from static path
       console.log('Loading YOLOv8 detection model...');
-      const yolov8 = await tf.loadGraphModel(modelPath, {
+      const yolov8 = await tf.loadGraphModel(MODEL_PATH, {
         onProgress: (fractions) => {
           // Update progress for detection model (0-80% of total progress)
           set({ loading: true, progress: fractions * 0.8 });
@@ -56,7 +53,7 @@ const useModelStore = create((set, get) => ({
         net: yolov8,
         classificationModel,
         inputShape: yolov8.inputs[0].shape,
-        modelName: currentVersion,
+        modelName: "v0",
         isInitialized: true,
       });
 

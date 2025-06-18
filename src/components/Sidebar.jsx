@@ -12,7 +12,6 @@ import {
   Camera,
 } from "lucide-react";
 import useUserStore from "../store/userStore";
-import { ModelUpdateChecker } from "./ModelUpdateChecker";
 
 const SidebarHeader = ({ onClose }) => (
   <div className="p-4 border-b border-green-100 flex justify-between items-center bg-green-50">
@@ -117,9 +116,7 @@ const Sidebar = () => {
           <UserInfo user={user} />
 
           <div className="flex-1 overflow-y-auto py-4">
-            <div className="px-4 mb-4">
-              <ModelUpdateChecker />
-            </div>
+            <div className="px-4 mb-4">{/* <ModelUpdateChecker /> */}</div>
             <nav className="px-4 space-y-1">
               {navigationItems.map((item) => (
                 <NavItem
