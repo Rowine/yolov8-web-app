@@ -8,7 +8,6 @@ import {
   User,
   HelpCircle,
   LogOut,
-  MapPin,
   Camera,
 } from "lucide-react";
 import useUserStore from "../store/userStore";
@@ -84,7 +83,6 @@ const Sidebar = () => {
   const navigationItems = [
     { icon: Camera, label: "Detect Disease", path: "/" },
     { icon: FileText, label: "Detection History", path: "/history" },
-    { icon: MapPin, label: "Detection Nearby", path: "/nearby" },
     { icon: User, label: "My Profile", path: "/profile" },
     { icon: HelpCircle, label: "Help & Support", path: "/help" },
   ];
