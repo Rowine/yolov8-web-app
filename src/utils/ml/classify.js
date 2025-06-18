@@ -13,7 +13,7 @@ export const loadClassificationModel = async () => {
 
   try {
     console.log('Loading rice leaf classification model...');
-    classificationModel = await tf.loadGraphModel('/classification/model.json');
+    classificationModel = await tf.loadGraphModel('/classify/model.json');
     console.log('Classification model loaded successfully');
     return classificationModel;
   } catch (error) {
