@@ -9,6 +9,7 @@ import AuthPage from "./pages/AuthPage";
 import LocationPage from "./pages/LocationPage";
 import ProfilePage from "./pages/ProfilePage";
 import DetectionHistoryPage from "./pages/DetectionHistoryPage";
+import HelpSupportPage from "./pages/HelpSupportPage";
 
 // Components
 import { LoginForm } from "./components/authentication/LoginForm";
@@ -107,6 +108,15 @@ const App = () => {
           element={
             <ProtectedRoute>
               <DetectionHistoryPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={ROUTES.HELP}
+          element={
+            <ProtectedRoute>
+              <HelpSupportPage />
             </ProtectedRoute>
           }
         />
