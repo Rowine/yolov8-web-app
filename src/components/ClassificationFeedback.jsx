@@ -103,7 +103,7 @@ const ClassificationFeedback = ({
         <div className="mb-4">
           <p className="text-sm text-gray-600 mb-3">
             Our model predicted:{" "}
-            <span className="font-medium">{classification.prediction}</span>
+            <span className="font-medium">{classification.prediction}</span>{" "}
             with {(classification.confidence * 100).toFixed(1)}% confidence.
           </p>
           <p className="text-sm text-gray-600 mb-4">

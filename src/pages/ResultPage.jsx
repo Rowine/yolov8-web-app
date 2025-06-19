@@ -165,66 +165,6 @@ const ResultPage = () => {
             <h2 className="text-lg font-bold text-green-800">
               Detection Results
             </h2>
-            {/* Classification Result */}
-            {classification && (
-              <div
-                className={`mt-2 p-3 rounded-lg border ${
-                  isRiceLeaf
-                    ? "bg-green-50 border-green-200"
-                    : "bg-yellow-50 border-yellow-200"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div
-                      className={`w-3 h-3 rounded-full mr-2 ${
-                        isRiceLeaf ? "bg-green-500" : "bg-yellow-500"
-                      }`}
-                    ></div>
-                    <span
-                      className={`font-medium ${
-                        isRiceLeaf ? "text-green-800" : "text-yellow-800"
-                      }`}
-                    >
-                      Classification:{" "}
-                      {classification.prediction
-                        .replace("_", " ")
-                        .replace(/\b\w/g, (l) => l.toUpperCase())}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-sm px-2 py-1 rounded-full ${
-                        isRiceLeaf
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {(classification.confidence * 100).toFixed(1)}% confidence
-                    </span>
-                    {isOnline && (
-                      <button
-                        onClick={() => setShowFeedbackModal(true)}
-                        className="text-sm px-2 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center gap-1 transition-colors"
-                        title="Report incorrect classification"
-                      >
-                        <Flag className="h-3 w-3" />
-                        Report
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {message && (
-                  <p
-                    className={`mt-2 text-sm ${
-                      isRiceLeaf ? "text-green-700" : "text-yellow-700"
-                    }`}
-                  >
-                    {message}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Status Messages */}
@@ -300,7 +240,7 @@ const ResultPage = () => {
                 <button
                   onClick={handleSaveAnnotations}
                   className={`flex items-center px-4 py-2 text-white rounded-lg transition-colors text-sm ${
-                    !isOnline || isUploading
+                    !isOnline || isUploading || isRiceLeaf === false
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-blue-600 hover:bg-blue-700"
                   }`}
@@ -308,10 +248,15 @@ const ResultPage = () => {
                     !detections ||
                     detections.length === 0 ||
                     isUploading ||
-                    !isOnline
+                    !isOnline ||
+                    isRiceLeaf === false
                   }
                   title={
-                    !isOnline ? "This feature requires internet connection" : ""
+                    !isOnline
+                      ? "This feature requires internet connection"
+                      : isRiceLeaf === false
+                      ? "Cannot upload non-rice leaf images to dataset"
+                      : ""
                   }
                 >
                   {isUploading ? (
@@ -359,7 +304,11 @@ const ResultPage = () => {
                         <AlertCircle className="h-6 w-6 text-yellow-600" />
                       </div>
                       <h4 className="text-lg font-medium text-yellow-800 mb-2">
-                        Not a Rice Leaf
+                        {classification?.prediction
+                          ? classification.prediction
+                              .replace(/_/g, " ")
+                              .replace(/\b\w/g, (l) => l.toUpperCase())
+                          : "Not a Rice Leaf"}
                       </h4>
                       <p className="text-gray-600 text-sm">
                         {message ||
@@ -374,6 +323,18 @@ const ResultPage = () => {
                           %
                         </p>
                       </div>
+                      {isOnline && classification && (
+                        <div className="mt-4">
+                          <button
+                            onClick={() => setShowFeedbackModal(true)}
+                            className="inline-flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+                            title="Report incorrect classification"
+                          >
+                            <Flag className="h-4 w-4 mr-2" />
+                            Report Incorrect Classification
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : !detections || detections.length === 0 ? (
                     <div className="bg-white rounded-lg shadow-sm p-6 text-center border border-green-100">
