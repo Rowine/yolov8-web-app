@@ -3,6 +3,7 @@ import { db } from "../config/firebase";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import useUserStore from "../store/userStore";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
+import { useTouchDevice } from "../hooks/useTouchDevice";
 import { Sidebar } from "../components/Sidebar";
 import { Calendar, Clock, WifiOff } from "lucide-react";
 import { MODEL_CONFIG } from "../config/constants";
@@ -66,6 +67,7 @@ const DetectionHistoryPage = () => {
   const [detections, setDetections] = useState([]);
   const [loading, setLoading] = useState(true);
   const isOnline = useOnlineStatus();
+  const { isTouchDevice, isRaspberryPi } = useTouchDevice();
 
   useEffect(() => {
     const fetchDetections = async () => {
@@ -173,7 +175,7 @@ const DetectionHistoryPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-green-50 flex flex-col">
+    <div className="min-h-screen bg-green-50 flex flex-col touch-scroll-container">
       <Sidebar />
       <div className="flex-1 px-4 py-8 flex flex-col max-w-5xl mx-auto w-full">
         <div className="text-center mb-6">
@@ -185,7 +187,7 @@ const DetectionHistoryPage = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 flex-1 overflow-y-auto touch-scroll-content">
           {!isOnline ? (
             <OfflineMessage />
           ) : loading ? (

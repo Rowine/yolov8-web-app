@@ -1,7 +1,7 @@
 {
-  "name": "Rice Disease Prediction and Detection",
+  "name": "Rice Disease and Pest Detection",
   "short_name": "RDPD",
-  "description": "Rice Disease Prediction and Detection",
+  "description": "Rice Disease and Pest Detection",
   "start_url": "/",
   "display": "fullscreen",
   "background_color": "#ffffff",

@@ -70,6 +70,113 @@
   }
 }
 
+/* Touch-friendly scrolling for Raspberry Pi and touch devices */
+.touch-scroll-container {
+  /* Enable hardware acceleration for better performance */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+
+  /* Force touch scrolling behavior */
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+
+  /* Prevent text selection during scrolling */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.touch-scroll-content {
+  /* Enable momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+
+  /* Force smooth scrolling */
+  scroll-behavior: smooth;
+
+  /* Enable touch actions */
+  touch-action: pan-y;
+
+  /* Hardware acceleration for better performance */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+
+  /* Make scrolling more responsive to touch */
+  overscroll-behavior: contain;
+}
+
+/* Hide scrollbars but keep functionality for touch devices */
+.touch-scroll-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.touch-scroll-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.touch-scroll-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.touch-scroll-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* For Firefox */
+.touch-scroll-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Enable touch scrolling on all touchable elements */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Improve touch responsiveness */
+@media (hover: none) and (pointer: coarse) {
+  /* This targets touch devices specifically */
+  .touch-scroll-content {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
+  }
+}
+
+/* Global touch-enabled styles for Raspberry Pi and touch devices */
+.touch-enabled {
+  /* Force touch scrolling behavior globally */
+  -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
+}
+
+.touch-enabled * {
+  /* Disable text selection for better touch experience */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.touch-enabled input,
+.touch-enabled textarea,
+.touch-enabled [contenteditable] {
+  /* Re-enable text selection for input fields */
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+.touch-enabled .touch-scroll-content {
+  /* Enhanced scrolling for touch devices */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
 /* Fullscreen and PWA specific styles */
 body.pwa-mode {
   /* Remove any default margins/padding for PWA */
