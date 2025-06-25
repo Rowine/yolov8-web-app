@@ -5,8 +5,6 @@ import {
   ArrowLeft,
   ChevronDown,
   Check,
-  Download,
-  Upload,
   AlertCircle,
   WifiOff,
   Flag,
@@ -61,12 +59,7 @@ const ResultPage = () => {
     detections,
   });
 
-  const {
-    uploadToDataset,
-    isUploading,
-    error: uploadError,
-    isSuccess: uploadSuccess,
-  } = useRoboflow();
+  const { autoUploadToProjects } = useRoboflow();
 
   const {
     submitFeedback,
@@ -98,46 +91,78 @@ const ResultPage = () => {
       drawDetections();
     }
 
-    // Save detections to Firestore when online or IndexedDB when offline
-    const saveDetections = async () => {
+    // Save detections and automatically upload to Roboflow projects
+    const saveDetectionsAndUpload = async () => {
       try {
-        for (const detection of detections) {
-          const detectionData = {
-            userId: user.uid,
-            detectedClass: detection.class,
-            confidence: detection.confidence,
-            timestamp: new Date().toISOString(),
-          };
+        // Create a comprehensive detection record
+        const detectionData = {
+          userId: user.uid,
+          timestamp: new Date().toISOString(),
+          isRiceLeaf: isRiceLeaf,
+          classification: classification,
+          hasDetections: detections && detections.length > 0,
+          detectionCount: detections ? detections.length : 0,
+          detections: detections || [],
+          // Add metadata for analytics
+          deviceInfo: {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+          },
+        };
 
-          if (isOnline) {
-            await addDoc(collection(db, "detections"), {
-              ...detectionData,
-              timestamp: serverTimestamp(),
-            });
-          } else {
-            await saveOfflineDetection(detectionData);
-            setSavingError(
-              "Detections saved offline. They will sync when you're back online."
+        // Save to Firestore/IndexedDB
+        if (isOnline) {
+          await addDoc(collection(db, "detections"), {
+            ...detectionData,
+            timestamp: serverTimestamp(),
+          });
+        } else {
+          await saveOfflineDetection(detectionData);
+          setSavingError(
+            "Detection results saved offline. They will sync when you're back online."
+          );
+        }
+
+        // Automatically upload to Roboflow projects when online
+        if (isOnline) {
+          try {
+            await autoUploadToProjects(
+              imageData,
+              detections,
+              isRiceLeaf,
+              classification
             );
+            console.log("Automatic upload to Roboflow projects completed");
+          } catch (uploadError) {
+            console.error(
+              "Failed to upload to Roboflow projects:",
+              uploadError
+            );
+            // Don't show error to user as this is automatic and not critical
           }
         }
+
         setSavingError(null);
       } catch (error) {
         console.error("Error saving detections:", error);
-        setSavingError("Failed to save detections. Please try again later.");
+        setSavingError(
+          "Failed to save detection results. Please try again later."
+        );
       }
     };
 
-    saveDetections();
-  }, [imageData, detections, navigate, user, drawDetections, isOnline]);
-
-  const handleSaveAnnotations = async () => {
-    if (!imageData || !detections) return;
-    if (!isOnline) {
-      return; // Button will be disabled when offline
-    }
-    await uploadToDataset(imageData, detections);
-  };
+    saveDetectionsAndUpload();
+  }, [
+    imageData,
+    detections,
+    navigate,
+    user,
+    drawDetections,
+    isOnline,
+    autoUploadToProjects,
+    isRiceLeaf,
+    classification,
+  ]);
 
   const handleFeedbackSubmit = async (feedbackData) => {
     const success = await submitFeedback(feedbackData);
@@ -175,18 +200,6 @@ const ResultPage = () => {
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-800">
               <AlertCircle className="h-5 w-5 mr-2" />
               {savingError}
-            </div>
-          )}
-          {uploadSuccess && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center text-green-800">
-              <Check className="h-5 w-5 mr-2" />
-              Successfully uploaded to Roboflow!
-            </div>
-          )}
-          {uploadError && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-800">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              {uploadError}
             </div>
           )}
           {feedbackSuccess && (
@@ -237,40 +250,6 @@ const ResultPage = () => {
                 />
               </div>
               <div className="flex justify-center gap-2">
-                <button
-                  onClick={handleSaveAnnotations}
-                  className={`flex items-center px-4 py-2 text-white rounded-lg transition-colors text-sm ${
-                    !isOnline || isUploading || isRiceLeaf === false
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  }`}
-                  disabled={
-                    !detections ||
-                    detections.length === 0 ||
-                    isUploading ||
-                    !isOnline ||
-                    isRiceLeaf === false
-                  }
-                  title={
-                    !isOnline
-                      ? "This feature requires internet connection"
-                      : isRiceLeaf === false
-                      ? "Cannot upload non-rice leaf images to dataset"
-                      : ""
-                  }
-                >
-                  {isUploading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload to Roboflow
-                    </>
-                  )}
-                </button>
                 {isRiceLeaf && (
                   <button
                     onClick={() => setShowAnnotationModal(true)}

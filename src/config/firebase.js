@@ -3,16 +3,39 @@ import { initializeApp } from "firebase/app";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { ENV_CONFIG, REQUIRED_ENV_VARS, validateEnvVars } from "./env";
+import { ENV_CONFIG } from "./env";
 
-// Validate Firebase environment variables
-validateEnvVars(REQUIRED_ENV_VARS.FIREBASE);
+// Firebase configuration object
+const firebaseConfig = {
+  apiKey: ENV_CONFIG.FIREBASE_API_KEY,
+  authDomain: ENV_CONFIG.FIREBASE_AUTH_DOMAIN,
+  projectId: ENV_CONFIG.FIREBASE_PROJECT_ID,
+  storageBucket: ENV_CONFIG.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: ENV_CONFIG.FIREBASE_MESSAGING_SENDER_ID,
+  appId: ENV_CONFIG.FIREBASE_APP_ID,
+  measurementId: ENV_CONFIG.FIREBASE_MEASUREMENT_ID,
+};
+
+// Validate required Firebase environment variables
+const requiredFirebaseVars = [
+  'FIREBASE_API_KEY',
+  'FIREBASE_AUTH_DOMAIN',
+  'FIREBASE_PROJECT_ID',
+  'FIREBASE_STORAGE_BUCKET',
+  'FIREBASE_MESSAGING_SENDER_ID',
+  'FIREBASE_APP_ID'
+];
+
+const missingVars = requiredFirebaseVars.filter(varName => !ENV_CONFIG[varName]);
+if (missingVars.length > 0) {
+  throw new Error(`Missing required Firebase environment variables: ${missingVars.join(', ')}`);
+}
 
 /**
  * Initialize Firebase app instance
  * @type {import("@firebase/app").FirebaseApp}
  */
-const app = initializeApp(ENV_CONFIG.firebase);
+const app = initializeApp(firebaseConfig);
 
 /**
  * Firebase Authentication instance

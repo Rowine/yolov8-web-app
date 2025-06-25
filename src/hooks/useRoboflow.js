@@ -3,7 +3,7 @@ import { createRoboflowDataset } from '../utils/export/annotationExport';
 import { uploadToRoboflow } from '../utils/export/roboflowAPI';
 
 /**
- * Custom hook to handle Roboflow upload operations
+ * Custom hook to handle automatic Roboflow uploads to two different projects
  * @returns {Object} Roboflow upload methods and state
  */
 export const useRoboflow = () => {
@@ -11,6 +11,86 @@ export const useRoboflow = () => {
   const [error, setError] = useState(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  /**
+   * Automatically uploads to both classification and detection projects
+   * @param {string} imageData - Base64 image data
+   * @param {Array} detections - Array of detection objects
+   * @param {boolean} isRiceLeaf - Whether the image is classified as rice leaf
+   * @param {Object} classification - Classification result object
+   */
+  const autoUploadToProjects = useCallback(async (imageData, detections, isRiceLeaf, classification) => {
+    if (!imageData) {
+      setError('No image data available for upload');
+      return false;
+    }
+
+    setIsUploading(true);
+    setError(null);
+    setIsSuccess(false);
+
+    try {
+      // Get credentials from environment variables
+      const apiKey = import.meta.env.VITE_ROBOFLOW_API_KEY;
+      const classificationProjectId = import.meta.env.VITE_ROBOFLOW_CLASSIFICATION_PROJECT_ID;
+      const detectionProjectId = import.meta.env.VITE_ROBOFLOW_DETECTION_PROJECT_ID;
+
+      if (!apiKey) {
+        throw new Error('Roboflow API key not configured');
+      }
+
+      const uploadPromises = [];
+
+      // 1. Upload to Classification Project (always upload for rice leaf classification)
+      if (classificationProjectId && classification) {
+        try {
+          const classificationDataset = createClassificationDataset(imageData, classification, isRiceLeaf);
+          uploadPromises.push(
+            uploadToRoboflow(classificationDataset, apiKey, classificationProjectId)
+              .catch(err => console.error('Classification upload failed:', err))
+          );
+        } catch (err) {
+          console.error('Error creating classification dataset:', err);
+        }
+      }
+
+      // 2. Upload to Detection Project (only if it's a rice leaf)
+      if (detectionProjectId && isRiceLeaf) {
+        try {
+          let detectionDataset;
+
+          if (detections && detections.length > 0) {
+            // Has detections - upload with annotations
+            detectionDataset = createRoboflowDataset(imageData, detections);
+          } else {
+            // Healthy rice leaf - upload unlabeled
+            detectionDataset = createUnlabeledDataset(imageData);
+          }
+
+          uploadPromises.push(
+            uploadToRoboflow(detectionDataset, apiKey, detectionProjectId)
+              .catch(err => console.error('Detection upload failed:', err))
+          );
+        } catch (err) {
+          console.error('Error creating detection dataset:', err);
+        }
+      }
+
+      // Wait for all uploads to complete
+      if (uploadPromises.length > 0) {
+        await Promise.allSettled(uploadPromises);
+        setIsSuccess(true);
+      }
+
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
+
+  // Legacy method for manual uploads (kept for backward compatibility)
   const uploadToDataset = useCallback(async (imageData, detections) => {
     if (!imageData || !detections?.length) {
       setError('No image or detections available');
@@ -22,7 +102,6 @@ export const useRoboflow = () => {
     setIsSuccess(false);
 
     try {
-      // Get credentials from environment variables
       const apiKey = import.meta.env.VITE_ROBOFLOW_API_KEY;
       const projectId = import.meta.env.VITE_ROBOFLOW_PROJECT_ID;
 
@@ -30,10 +109,7 @@ export const useRoboflow = () => {
         throw new Error('Roboflow API key or Project ID not configured');
       }
 
-      // Create the dataset object
       const dataset = createRoboflowDataset(imageData, detections);
-
-      // Upload to Roboflow
       await uploadToRoboflow(dataset, apiKey, projectId);
       setIsSuccess(true);
       return true;
@@ -46,9 +122,56 @@ export const useRoboflow = () => {
   }, []);
 
   return {
-    uploadToDataset,
+    uploadToDataset, // Legacy method
+    autoUploadToProjects, // New automatic upload method
     isUploading,
     error,
     isSuccess
+  };
+};
+
+/**
+ * Creates a dataset for classification project (rice leaf vs not rice leaf)
+ * @param {string} imageData - Base64 image data
+ * @param {Object} classification - Classification result
+ * @param {boolean} isRiceLeaf - Whether image is rice leaf
+ * @returns {Object} Classification dataset
+ */
+const createClassificationDataset = (imageData, classification, isRiceLeaf) => {
+  const base64Image = imageData.split(',')[1];
+
+  // For classification, we just need the image and class label
+  const className = isRiceLeaf ? 'rice_leaf' : (classification.prediction || 'not_rice_leaf');
+
+  return {
+    image: base64Image,
+    annotations: '', // No bounding box annotations for classification
+    labelmap: { 0: className },
+    format: 'classification',
+    metadata: {
+      confidence: classification.confidence,
+      originalPrediction: classification.prediction,
+      isRiceLeaf: isRiceLeaf
+    }
+  };
+};
+
+/**
+ * Creates an unlabeled dataset for healthy rice leaves
+ * @param {string} imageData - Base64 image data
+ * @returns {Object} Unlabeled dataset
+ */
+const createUnlabeledDataset = (imageData) => {
+  const base64Image = imageData.split(',')[1];
+
+  return {
+    image: base64Image,
+    annotations: '', // No annotations for unlabeled data
+    labelmap: {}, // Empty labelmap for unlabeled
+    format: 'unlabeled',
+    metadata: {
+      type: 'healthy_rice_leaf',
+      unlabeled: true
+    }
   };
 }; 
