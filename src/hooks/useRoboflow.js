@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { createRoboflowDataset } from '../utils/export/annotationExport';
-import { uploadToRoboflow } from '../utils/export/roboflowAPI';
+import { uploadToRoboflow, uploadClassificationToRoboflow } from '../utils/export/roboflowAPI';
 
 /**
  * Custom hook to handle automatic Roboflow uploads to two different projects
@@ -32,7 +32,7 @@ export const useRoboflow = () => {
       // Get credentials from environment variables
       const apiKey = import.meta.env.VITE_ROBOFLOW_API_KEY;
       const classificationProjectId = import.meta.env.VITE_ROBOFLOW_CLASSIFICATION_PROJECT_ID;
-      const detectionProjectId = import.meta.env.VITE_ROBOFLOW_DETECTION_PROJECT_ID;
+      const detectionProjectId = import.meta.env.VITE_ROBOFLOW_PROJECT_ID;
 
       if (!apiKey) {
         throw new Error('Roboflow API key not configured');
@@ -45,7 +45,7 @@ export const useRoboflow = () => {
         try {
           const classificationDataset = createClassificationDataset(imageData, classification, isRiceLeaf);
           uploadPromises.push(
-            uploadToRoboflow(classificationDataset, apiKey, classificationProjectId)
+            uploadClassificationToRoboflow(classificationDataset, apiKey, classificationProjectId)
               .catch(err => console.error('Classification upload failed:', err))
           );
         } catch (err) {
@@ -141,7 +141,7 @@ const createClassificationDataset = (imageData, classification, isRiceLeaf) => {
   const base64Image = imageData.split(',')[1];
 
   // For classification, we just need the image and class label
-  const className = isRiceLeaf ? 'rice_leaf' : (classification.prediction || 'not_rice_leaf');
+  const className = isRiceLeaf ? 'rice_leaf' : 'not_rice_leaf';
 
   return {
     image: base64Image,
@@ -151,7 +151,8 @@ const createClassificationDataset = (imageData, classification, isRiceLeaf) => {
     metadata: {
       confidence: classification.confidence,
       originalPrediction: classification.prediction,
-      isRiceLeaf: isRiceLeaf
+      isRiceLeaf: isRiceLeaf,
+      finalClassName: className
     }
   };
 };
