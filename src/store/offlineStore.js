@@ -1,9 +1,10 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'rice-detection-app';
-const DB_VERSION = 2; // Increased version for new store
+const DB_VERSION = 3; // Increased version for Roboflow uploads store
 const DETECTIONS_STORE = 'offline-detections';
 const NOTIFICATIONS_STORE = 'offline-notifications';
+const ROBOFLOW_UPLOADS_STORE = 'offline-roboflow-uploads';
 
 export const initDB = async () => {
   const db = await openDB(DB_NAME, DB_VERSION, {
@@ -26,6 +27,16 @@ export const initDB = async () => {
         notificationsStore.createIndex('timestamp', 'timestamp');
         // Add index for recipient phone number
         notificationsStore.createIndex('phoneNumber', 'phoneNumber');
+      }
+
+      // Create Roboflow uploads store if it doesn't exist
+      if (!db.objectStoreNames.contains(ROBOFLOW_UPLOADS_STORE)) {
+        const uploadsStore = db.createObjectStore(ROBOFLOW_UPLOADS_STORE, {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        uploadsStore.createIndex('timestamp', 'timestamp');
+        uploadsStore.createIndex('uploadType', 'uploadType'); // 'classification', 'detection', 'feedback'
       }
     },
   });
@@ -149,6 +160,59 @@ export const deleteNotification = async (id) => {
     await db.delete(NOTIFICATIONS_STORE, id);
   } catch (error) {
     console.error('Error deleting notification:', error);
+    throw error;
+  } finally {
+    db.close();
+  }
+};
+
+// Roboflow upload related functions
+export const saveOfflineRoboflowUpload = async (uploadData) => {
+  const db = await initDB();
+  try {
+    await db.add(ROBOFLOW_UPLOADS_STORE, {
+      ...uploadData,
+      timestamp: new Date().toISOString(),
+      synced: false,
+    });
+  } catch (error) {
+    console.error('Error saving offline Roboflow upload:', error);
+    throw error;
+  } finally {
+    db.close();
+  }
+};
+
+export const getUnsyncedRoboflowUploads = async () => {
+  const db = await initDB();
+  try {
+    return await db.getAllFromIndex(ROBOFLOW_UPLOADS_STORE, 'timestamp');
+  } catch (error) {
+    console.error('Error getting unsynced Roboflow uploads:', error);
+    throw error;
+  } finally {
+    db.close();
+  }
+};
+
+export const markRoboflowUploadAsSynced = async (id) => {
+  const db = await initDB();
+  try {
+    await db.put(ROBOFLOW_UPLOADS_STORE, { id, synced: true });
+  } catch (error) {
+    console.error('Error marking Roboflow upload as synced:', error);
+    throw error;
+  } finally {
+    db.close();
+  }
+};
+
+export const deleteRoboflowUpload = async (id) => {
+  const db = await initDB();
+  try {
+    await db.delete(ROBOFLOW_UPLOADS_STORE, id);
+  } catch (error) {
+    console.error('Error deleting Roboflow upload:', error);
     throw error;
   } finally {
     db.close();

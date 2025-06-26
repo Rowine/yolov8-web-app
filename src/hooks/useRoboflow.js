@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { createRoboflowDataset } from '../utils/export/annotationExport';
 import { uploadToRoboflow, uploadClassificationToRoboflow } from '../utils/export/roboflowAPI';
+import { useOnlineStatus } from './useOnlineStatus';
+import { saveOfflineRoboflowUpload } from '../store/offlineStore';
 
 /**
  * Custom hook to handle automatic Roboflow uploads to two different projects
@@ -10,6 +12,7 @@ export const useRoboflow = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const isOnline = useOnlineStatus();
 
   /**
    * Automatically uploads to both classification and detection projects
@@ -38,6 +41,28 @@ export const useRoboflow = () => {
         throw new Error('Roboflow API key not configured');
       }
 
+      // If offline, save uploads for later sync
+      if (!isOnline) {
+        console.log('Offline detected - saving Roboflow uploads for later sync');
+
+        const uploadData = {
+          imageData,
+          detections,
+          isRiceLeaf,
+          classification,
+          apiKey,
+          classificationProjectId,
+          detectionProjectId,
+          uploadType: 'auto-upload'
+        };
+
+        await saveOfflineRoboflowUpload(uploadData);
+        setIsSuccess(true);
+        console.log('Roboflow uploads saved offline successfully');
+        return true;
+      }
+
+      // If online, proceed with uploads
       const uploadPromises = [];
 
       // 1. Upload to Classification Project (always upload for rice leaf classification)
@@ -79,6 +104,7 @@ export const useRoboflow = () => {
       if (uploadPromises.length > 0) {
         await Promise.allSettled(uploadPromises);
         setIsSuccess(true);
+        console.log('Online Roboflow uploads completed successfully');
       }
 
       return true;
@@ -88,7 +114,7 @@ export const useRoboflow = () => {
     } finally {
       setIsUploading(false);
     }
-  }, []);
+  }, [isOnline]);
 
   // Legacy method for manual uploads (kept for backward compatibility)
   const uploadToDataset = useCallback(async (imageData, detections) => {
@@ -109,9 +135,27 @@ export const useRoboflow = () => {
         throw new Error('Roboflow API key or Project ID not configured');
       }
 
+      // If offline, save for later sync
+      if (!isOnline) {
+        const uploadData = {
+          imageData,
+          detections,
+          apiKey,
+          projectId,
+          uploadType: 'manual-upload'
+        };
+
+        await saveOfflineRoboflowUpload(uploadData);
+        setIsSuccess(true);
+        console.log('Manual Roboflow upload saved offline successfully');
+        return true;
+      }
+
+      // If online, proceed with upload
       const dataset = createRoboflowDataset(imageData, detections);
       await uploadToRoboflow(dataset, apiKey, projectId);
       setIsSuccess(true);
+      console.log('Manual Roboflow upload completed successfully');
       return true;
     } catch (err) {
       setError(err.message);
@@ -119,7 +163,7 @@ export const useRoboflow = () => {
     } finally {
       setIsUploading(false);
     }
-  }, []);
+  }, [isOnline]);
 
   return {
     uploadToDataset, // Legacy method

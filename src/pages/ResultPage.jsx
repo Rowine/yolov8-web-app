@@ -20,6 +20,7 @@ import { useDetectionFeedback } from "../hooks/useDetectionFeedback";
 import preventionTips from "../utils/data/prevention.json";
 import { Sidebar } from "../components/Sidebar";
 import { DetectionNotifier } from "../components/DetectionNotifier";
+import { RoboflowUploadStatus } from "../components/RoboflowUploadStatus";
 import ClassificationFeedback from "../components/ClassificationFeedback";
 import AnnotationFeedback from "../components/AnnotationFeedback";
 import { saveOfflineDetection } from "../store/offlineStore";
@@ -59,7 +60,12 @@ const ResultPage = () => {
     detections,
   });
 
-  const { autoUploadToProjects } = useRoboflow();
+  const {
+    autoUploadToProjects,
+    isUploading,
+    error: uploadError,
+    isSuccess: uploadSuccess,
+  } = useRoboflow();
 
   const {
     submitFeedback,
@@ -123,23 +129,18 @@ const ResultPage = () => {
           );
         }
 
-        // Automatically upload to Roboflow projects when online
-        if (isOnline) {
-          try {
-            await autoUploadToProjects(
-              imageData,
-              detections,
-              isRiceLeaf,
-              classification
-            );
-            console.log("Automatic upload to Roboflow projects completed");
-          } catch (uploadError) {
-            console.error(
-              "Failed to upload to Roboflow projects:",
-              uploadError
-            );
-            // Don't show error to user as this is automatic and not critical
-          }
+        // Automatically upload to Roboflow projects (works both online and offline)
+        try {
+          await autoUploadToProjects(
+            imageData,
+            detections,
+            isRiceLeaf,
+            classification
+          );
+          console.log("Roboflow upload process completed");
+        } catch (uploadError) {
+          console.error("Failed to process Roboflow uploads:", uploadError);
+          // Error handling is now managed by the upload hook and status component
         }
 
         setSavingError(null);
@@ -415,6 +416,13 @@ const ResultPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Roboflow Upload Status */}
+      <RoboflowUploadStatus
+        isUploading={isUploading}
+        isSuccess={uploadSuccess}
+        error={uploadError}
+      />
 
       {/* Only show DetectionNotifier if there are detections and user has farmLocation */}
       {detections && detections.length > 0 && user?.farmLocation && (
