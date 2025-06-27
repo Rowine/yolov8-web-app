@@ -50,9 +50,7 @@ export const useRoboflow = () => {
           detections,
           isRiceLeaf,
           classification,
-          apiKey,
-          classificationProjectId,
-          detectionProjectId,
+          // Don't store API keys or project IDs for security
           uploadType: 'auto-upload'
         };
 
@@ -140,8 +138,7 @@ export const useRoboflow = () => {
         const uploadData = {
           imageData,
           detections,
-          apiKey,
-          projectId,
+          // Don't store API keys or project IDs for security  
           uploadType: 'manual-upload'
         };
 

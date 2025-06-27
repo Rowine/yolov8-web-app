@@ -138,7 +138,16 @@ export const useSyncOfflineData = () => {
  * @param {Object} upload - The upload data from offline store
  */
 const syncRoboflowUpload = async (upload) => {
-  const { uploadType, imageData, detections, isRiceLeaf, classification, apiKey, classificationProjectId, detectionProjectId, projectId } = upload;
+  // Get credentials from environment variables for security
+  const apiKey = import.meta.env.VITE_ROBOFLOW_API_KEY;
+  const classificationProjectId = import.meta.env.VITE_ROBOFLOW_CLASSIFICATION_PROJECT_ID;
+  const detectionProjectId = import.meta.env.VITE_ROBOFLOW_PROJECT_ID;
+
+  if (!apiKey) {
+    throw new Error('Roboflow API key not configured');
+  }
+
+  const { uploadType, imageData, detections, isRiceLeaf, classification } = upload;
 
   if (uploadType === 'auto-upload') {
     // Auto upload to both classification and detection projects
@@ -186,7 +195,7 @@ const syncRoboflowUpload = async (upload) => {
   } else if (uploadType === 'manual-upload') {
     // Manual upload to detection project
     const dataset = createRoboflowDataset(imageData, detections);
-    await uploadToRoboflow(dataset, apiKey, projectId);
+    await uploadToRoboflow(dataset, apiKey, detectionProjectId);
   }
 };
 
