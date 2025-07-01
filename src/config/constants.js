@@ -106,7 +106,7 @@ export const APP_CONFIG = {
  * @type {Object}
  */
 export const MODEL_CONFIG = {
-  confidenceThreshold: 0.75, // 75% confidence threshold
+  confidenceThreshold: 0.50, // 75% confidence threshold
   nmsIoUThreshold: 0.45, // Non-maximum suppression IoU threshold
   maxDetections: 500, // Maximum number of detections to return
 }; 
