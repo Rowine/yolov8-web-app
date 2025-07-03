@@ -55,7 +55,8 @@ export const sendSMS = async (phoneNumber, message) => {
  * @param {string} currentUserId - The ID of the currently logged-in user
  */
 export const notifyNearbyUsers = async (currentLocation, detectedIssues, nearbyUsers, currentUserId) => {
-  const issuesList = detectedIssues.map(issue => issue.name).join(', ');
+  // Remove duplicate issue names using Set
+  const issuesList = [...new Set(detectedIssues.map(issue => issue.name))].join(', ');
 
   // Filter out the current user from notifications
   const otherUsers = nearbyUsers.filter(user => user.uid !== currentUserId);
