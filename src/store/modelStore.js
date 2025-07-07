@@ -11,7 +11,7 @@ const useModelStore = create((set, get) => ({
   net: null,
   classificationModel: null,
   inputShape: [1, 0, 0, 3],
-  modelName: "v0",
+  modelName: "v3",
   error: null,
   isInitialized: false,
 
@@ -53,7 +53,7 @@ const useModelStore = create((set, get) => ({
         net: yolov8,
         classificationModel,
         inputShape: yolov8.inputs[0].shape,
-        modelName: "v0",
+        modelName: "v3",
         isInitialized: true,
       });
 
