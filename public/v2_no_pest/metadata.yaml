@@ -1,0 +1,23 @@
+description: Ultralytics best_no_pest_07-04-25 model trained on /content/datasets/My-First-Project-13/data.yaml
+author: Ultralytics
+date: '2025-07-04T12:24:16.475297'
+version: 8.3.162
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: Bacterial Leaf Blight
+  1: Leaf Blast
+  2: Sheath Blight
+  3: Tungro
+args:
+  batch: 1
+  half: false
+  int8: false
+  nms: false
+channels: 3
