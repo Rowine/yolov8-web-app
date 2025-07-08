@@ -3,7 +3,7 @@ import * as tf from "@tensorflow/tfjs";
 import { loadClassificationModel } from '../utils/ml/classify';
 
 // Removed FIREBASE_HOST since we're using local static files
-const MODEL_PATH = '/v4/model.json'; // Static path to your model
+const MODEL_PATH = '/v3/model.json'; // Static path to your model
 
 const useModelStore = create((set, get) => ({
   loading: true,
